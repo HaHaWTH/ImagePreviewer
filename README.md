@@ -16,6 +16,10 @@ Preview images in chat bar easily, efficiently.
 4. **Restart Server**: Restart your server to load ImagePreviewer.
 5. Enjoy!
 
+## Showcase
+
+![image](./image/showcase_1.gif)
+
 ## Commands
 
 - `/imagepreview preview <url>`: Preview an image from a URL.
