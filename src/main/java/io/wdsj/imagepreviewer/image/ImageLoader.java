@@ -41,10 +41,10 @@ public class ImageLoader {
     public static void init() {
         imageCache = CacheBuilder.newBuilder()
                 .maximumSize(ImagePreviewer.config().cache_maximum_size)
-                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .expireAfterWrite(ImagePreviewer.config().cache_expire_time, TimeUnit.MINUTES)
                 .build();
     }
-    public static CompletableFuture<ImageData> imageAsBytes(String urlString) {
+    public static CompletableFuture<ImageData> imageAsData(String urlString) {
         if (ImagePreviewer.config().enable_image_cache) {
             var cachedImage = imageCache.getIfPresent(urlString);
             if (cachedImage != null) {

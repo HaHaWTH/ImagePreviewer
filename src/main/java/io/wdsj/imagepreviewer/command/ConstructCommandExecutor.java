@@ -48,9 +48,13 @@ public class ConstructCommandExecutor implements CommandExecutor {
                         MessageUtil.sendMessage(sender, config.message_already_on_previewing);
                         return true;
                     }
+                    if (ImagePreviewer.getInstance().getMapManager().queuedPlayers.contains(player.getUniqueId())) {
+                        MessageUtil.sendMessage(sender, config.message_preview_still_loading);
+                        return true;
+                    }
                     MessageUtil.sendMessage(sender, config.message_preview_loading);
                     ImagePreviewer.getInstance().getMapManager().queuedPlayers.add(player.getUniqueId());
-                    ImageLoader.imageAsBytes(args[1].trim())
+                    ImageLoader.imageAsData(args[1].trim())
                             .thenAccept(imageData -> {
                                 new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn();
                             })

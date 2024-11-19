@@ -27,7 +27,7 @@ public class ChatListener implements Listener {
             return;
         }
         if (ImagePreviewer.config().preload_images_in_chat && ImagePreviewer.config().enable_image_cache) {
-            ImageLoader.imageAsBytes(url)
+            ImageLoader.imageAsData(url)
                     .exceptionally(throwable -> null);
         }
         String playerName = event.getPlayer().getName();
