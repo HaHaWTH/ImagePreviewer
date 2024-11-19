@@ -10,6 +10,7 @@ import io.wdsj.imagepreviewer.listener.ChatListener;
 import io.wdsj.imagepreviewer.packet.MapManager;
 import io.wdsj.imagepreviewer.permission.CachingPermTool;
 import io.wdsj.imagepreviewer.task.MapDisplayDirectionTask;
+import io.wdsj.imagepreviewer.update.Updater;
 import io.wdsj.imagepreviewer.util.Util;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
@@ -59,6 +60,21 @@ public class ImagePreviewer extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
         Metrics metrics = new Metrics(this, 23927);
         LOGGER.info("ImagePreviewer is enabled!");
+        if (config().check_for_update) {
+            getScheduler().runTaskAsynchronously(() -> {
+                LOGGER.info("Checking for update...");
+                if (Updater.isUpdateAvailable()) {
+                    LOGGER.warning("There is a new version available: " + Updater.getLatestVersion() +
+                            ", you're on: " + Updater.getCurrentVersion());
+                } else {
+                    if (!Updater.isErred()) {
+                        LOGGER.info("You are running the latest version.");
+                    } else {
+                        LOGGER.info("Unable to fetch version info.");
+                    }
+                }
+            });
+        }
     }
 
     @Override
