@@ -55,9 +55,9 @@ public class Config {
                 "The message that will be sent to the player when they enter an invalid URL.");
         this.message_command_player_only = getString("message.command-player-only", "&cThis command can only be used by players.",
                 "The message that will be sent when try to use a command that can only be used by players.");
-        this.message_unknown_command = getString("message.unknown-command", "&cUnknown command.",
+        this.message_unknown_command = getString("message.unknown-command", "&cUnknown command. Type /preview help for help.",
                 "The message that will be sent to the player when they enter an unknown command.");
-        this.message_args_error = getString("message.args-error", "&cInvalid arguments.",
+        this.message_args_error = getString("message.args-error", "&cInvalid arguments. Type /preview help for help.",
                 "The message that will be sent to the player when they enter invalid arguments.");
         this.message_already_on_previewing = getString("message.already-on-previewing", "&cYou are already on previewing!",
                 "The message that will be sent to the player when they are already on previewing.");

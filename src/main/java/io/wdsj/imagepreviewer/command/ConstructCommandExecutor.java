@@ -58,7 +58,7 @@ public class ConstructCommandExecutor implements CommandExecutor {
                 return true;
             }
         }
-        if (args.length >= 2) {
+        if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("preview")) {
                 if (!(sender instanceof Player player)) {
                     MessageUtil.sendMessage(sender, config.message_command_player_only);
@@ -71,6 +71,10 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     }
                     if (ImagePreviewer.getInstance().getMapManager().queuedPlayers.contains(player.getUniqueId())) {
                         MessageUtil.sendMessage(sender, config.message_preview_still_loading);
+                        return true;
+                    }
+                    if (args.length < 2) {
+                        MessageUtil.sendMessage(sender, config.message_args_error);
                         return true;
                     }
                     MessageUtil.sendMessage(sender, config.message_preview_loading);
