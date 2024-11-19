@@ -7,6 +7,7 @@ import io.wdsj.imagepreviewer.packet.PacketMapDisplay;
 import io.wdsj.imagepreviewer.permission.CachingPermTool;
 import io.wdsj.imagepreviewer.permission.PermissionsEnum;
 import io.wdsj.imagepreviewer.util.MessageUtil;
+import io.wdsj.imagepreviewer.util.Util;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -36,8 +37,28 @@ public class ConstructCommandExecutor implements CommandExecutor {
                 MessageUtil.sendMessage(sender, config.message_no_permission);
                 return true;
             }
+            if (args[0].equalsIgnoreCase("cancel")) {
+                if (!(sender instanceof Player player)) {
+                    MessageUtil.sendMessage(sender, config.message_command_player_only);
+                    return true;
+                }
+
+                if (!CachingPermTool.hasPermission(PermissionsEnum.CANCEL_PREVIEW, player)) {
+                    MessageUtil.sendMessage(sender, config.message_no_permission);
+                    return true;
+                }
+
+                var tracker = ImagePreviewer.getInstance().getMapManager();
+                if (tracker.hasRunningPreview(player)) {
+                    tracker.getDisplay(player).despawn();
+                    MessageUtil.sendMessage(sender, config.message_cancel_success);
+                } else {
+                    MessageUtil.sendMessage(sender, config.message_nothing_to_cancel);
+                }
+                return true;
+            }
         }
-        if (args.length == 2) {
+        if (args.length >= 2) {
             if (args[0].equalsIgnoreCase("preview")) {
                 if (!(sender instanceof Player player)) {
                     MessageUtil.sendMessage(sender, config.message_command_player_only);
@@ -56,7 +77,20 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     ImagePreviewer.getInstance().getMapManager().queuedPlayers.add(player.getUniqueId());
                     ImageLoader.imageAsData(args[1].trim())
                             .thenAccept(imageData -> {
-                                new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn();
+                                if (args.length > 2) {
+                                    if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW_TIME, player)) {
+                                        MessageUtil.sendMessage(sender, config.message_no_permission);
+                                        return;
+                                    }
+                                    Long lifecycleTicks = Util.parseLong(args[2].trim());
+                                    if (lifecycleTicks == null || lifecycleTicks < 1) {
+                                        MessageUtil.sendMessage(sender, config.message_args_error);
+                                        return;
+                                    }
+                                    new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData, lifecycleTicks).spawn();
+                                } else {
+                                    new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn();
+                                }
                             })
                             .exceptionally(ex -> {
                                 MessageUtil.sendMessage(sender, config.message_invalid_url);

@@ -14,8 +14,10 @@ permissions:
     description: Allows access to all commands and features of the plugin.
     children:
       imagepreviewer.use: true
+      imagepreviewer.use.time: true
       imagepreviewer.command.reload: true
       imagepreviewer.command.help: true
+      imagepreviewer.command.cancel: true
   imagepreviewer.command.reload:
     default: op
     description: Allows the reloading of the plugin's configuration.
@@ -25,6 +27,12 @@ permissions:
   imagepreviewer.use:
     default: true
     description: Allows the use of the plugin.
+  imagepreviewer.use.time:
+    default: op
+    description: Allows the use of the plugin for a specified time.
+  imagepreviewer.command.cancel:
+    default: true
+    description: Allows the cancellation of the preview.
 commands:
   imagepreviewer:
     description: The main command for the plugin.

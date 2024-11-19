@@ -31,7 +31,8 @@ public class Config {
     public final String message_reload_success, message_preview_loading,
     message_no_permission, message_invalid_url, message_command_player_only,
     message_unknown_command, message_already_on_previewing, message_url_matched, message_hover_event
-            , message_preview_still_loading, message_help_info;
+            , message_preview_still_loading, message_help_info, message_args_error, message_cancel_success,
+    message_nothing_to_cancel;
 
     public Config(ImagePreviewer plugin, File dataFolder) throws Exception {
         this.plugin = plugin;
@@ -54,8 +55,10 @@ public class Config {
                 "The message that will be sent to the player when they enter an invalid URL.");
         this.message_command_player_only = getString("message.command-player-only", "&cThis command can only be used by players.",
                 "The message that will be sent when try to use a command that can only be used by players.");
-        this.message_unknown_command = getString("message.unknown-command", "&cUnknown command!",
+        this.message_unknown_command = getString("message.unknown-command", "&cUnknown command.",
                 "The message that will be sent to the player when they enter an unknown command.");
+        this.message_args_error = getString("message.args-error", "&cInvalid arguments.",
+                "The message that will be sent to the player when they enter invalid arguments.");
         this.message_already_on_previewing = getString("message.already-on-previewing", "&cYou are already on previewing!",
                 "The message that will be sent to the player when they are already on previewing.");
         this.message_preview_still_loading = getString("message.preview-still-loading", "&cPreview is still loading...",
@@ -68,8 +71,13 @@ public class Config {
                 &b&l&nImage Previewer
                 &a/imagepreviewer reload &7- Reload the plugin
                 &a/imagepreviewer help &7- Show this message
-                &a/imagepreviewer preview <url> &7- Preview an image from given url"""
+                &a/imagepreviewer preview <url> [time-ticks] &7- Preview an image from given url
+                &a/imagepreviewer cancel &7- Cancel running preview"""
         );
+        this.message_cancel_success = getString("message.cancel-success", "&aCancelled image preview.",
+                "The message that will be sent to the player when they cancel the image preview.");
+        this.message_nothing_to_cancel = getString("message.nothing-to-cancel", "&cYou are not on previewing.",
+                "The message that will be sent to the player when they are not on previewing.");
 
 
         this.preview_mode = getInt("plugin.preview-mode", 2,

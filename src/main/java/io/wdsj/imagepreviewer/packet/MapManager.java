@@ -8,6 +8,12 @@ import me.tofaa.entitylib.APIConfig;
 import me.tofaa.entitylib.EntityLib;
 import me.tofaa.entitylib.spigot.SpigotEntityLibPlatform;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -15,16 +21,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 
-public class MapManager {
+public class MapManager implements Listener {
     private static final Map<UUID, PacketMapDisplay> displays = new ConcurrentHashMap<>();
     public final List<UUID> queuedPlayers = new CopyOnWriteArrayList<>();
     private final ImagePreviewer plugin;
-    private final ScheduledExecutorService excutor;
+    private final ScheduledExecutorService executor;
 
     public MapManager(@NotNull ImagePreviewer plugin) {
         this.plugin = plugin;
         this.initialize();
-        excutor = new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder()
+        executor = new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder()
                 .setNameFormat("ImagePreviewer-MapManager")
                 .setDaemon(true)
                 .build()
@@ -36,19 +42,26 @@ public class MapManager {
         final APIConfig settings = new APIConfig(PacketEvents.getAPI())
                 .usePlatformLogger();
         EntityLib.init(platform, settings);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public ScheduledFuture<?> scheduleTask(Runnable runnable, long delay, long period) {
-        return excutor.scheduleAtFixedRate(runnable, delay, period, TimeUnit.MILLISECONDS);
+        return executor.scheduleAtFixedRate(runnable, delay, period, TimeUnit.MILLISECONDS);
     }
 
-    public void add(Player player, PacketMapDisplay display) {
+    public void track(Player player, PacketMapDisplay display) {
         displays.put(player.getUniqueId(), display);
     }
 
-    public void remove(Player player) {
-        displays.remove(player.getUniqueId());
+    public void untrack(Player player) {
+        UUID uuid = player.getUniqueId();
+        displays.remove(uuid);
     }
+
+    public PacketMapDisplay getDisplay(Player player) {
+        return displays.get(player.getUniqueId());
+    }
+
     public boolean hasRunningPreview(Player player) {
         return displays.containsKey(player.getUniqueId());
     }
@@ -57,11 +70,30 @@ public class MapManager {
         return List.copyOf(displays.values());
     }
     public void close() {
-        excutor.shutdown();
+        executor.shutdown();
+        displays.values().forEach(PacketMapDisplay::despawn);
         displays.clear();
+        queuedPlayers.clear();
+        HandlerList.unregisterAll(this);
     }
 
     public synchronized int getEntityId() {
         return SpigotReflectionUtil.generateEntityId();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        if (hasRunningPreview(player)) {
+            displays.remove(player.getUniqueId()).despawn();
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onKick(PlayerKickEvent event) {
+        Player player = event.getPlayer();
+        if (hasRunningPreview(player)) {
+            displays.remove(player.getUniqueId()).despawn();
+        }
     }
 }

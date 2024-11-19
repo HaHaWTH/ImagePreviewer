@@ -32,12 +32,36 @@ public class PacketMapDisplay {
     private int currentFrame;
     private final int mapId;
     private ScheduledFuture<?> updateTask;
+    private final long lifecycleTicks;
 
     public PacketMapDisplay(ImagePreviewer plugin, Player owner, ImageData imageData) {
         this.plugin = plugin;
         this.owner = owner;
         this.imageData = imageData;
         this.isAnimated = imageData.animated();
+        this.lifecycleTicks = Config.isReloading ? 100L : ImagePreviewer.config().image_preview_lifetime;
+        this.currentFrame = 0;
+        final int entityId = plugin.getMapManager().getEntityId();
+        this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
+        ItemFrameMeta meta = (ItemFrameMeta) entity.getEntityMeta();
+        this.mapId = RandomUtil.genRandomMapId();
+        ItemStack stack = ItemStack.builder()
+                .type(ItemTypes.FILLED_MAP)
+                .amount(1)
+                .nbt("map_id", new NBTInt(mapId))
+                .component(ComponentTypes.MAP_ID, mapId)
+                .build();
+        meta.setItem(stack);
+        meta.setInvisible(ImagePreviewer.config().use_invisible_item_frame);
+        meta.setGlowing(ImagePreviewer.config().use_glowing_item_frame);
+    }
+
+    public PacketMapDisplay(ImagePreviewer plugin, Player owner, ImageData imageData, long lifecycleTicks) {
+        this.plugin = plugin;
+        this.owner = owner;
+        this.imageData = imageData;
+        this.isAnimated = imageData.animated();
+        this.lifecycleTicks = lifecycleTicks;
         this.currentFrame = 0;
         final int entityId = plugin.getMapManager().getEntityId();
         this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
@@ -55,6 +79,7 @@ public class PacketMapDisplay {
     }
 
     public void spawn() {
+        plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
         WrapperPlayServerMapData mapData = PacketUtil.makePacket(mapId, imageData.data().getFirst());
         entity.addViewer(owner.getUniqueId());
         Location ownerEyeLocation = owner.getEyeLocation().clone();
@@ -65,10 +90,9 @@ public class PacketMapDisplay {
         entityLoc.setPitch(alignment[1]);
         entity.spawn(SpigotConversionUtil.fromBukkitLocation(entityLoc));
         PacketEvents.getAPI().getPlayerManager().sendPacket(owner, mapData);
-        plugin.getMapManager().add(owner, this);
-        plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
+        plugin.getMapManager().track(owner, this);
         if (isAnimated) startAnimation();
-        ImagePreviewer.getScheduler().runTaskLaterAsynchronously(this::despawn, Config.isReloading ? 100L : ImagePreviewer.config().image_preview_lifetime);
+        ImagePreviewer.getScheduler().runTaskLaterAsynchronously(this::despawn, lifecycleTicks);
     }
 
     public WrapperEntity getEntity() {
@@ -88,7 +112,7 @@ public class PacketMapDisplay {
     }
 
     public void despawn() {
-        plugin.getMapManager().remove(owner);
+        plugin.getMapManager().untrack(owner);
         entity.despawn();
         stopAnimation();
     }

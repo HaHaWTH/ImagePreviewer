@@ -17,4 +17,20 @@ public class Util {
             return defaultValue;
         }
     }
+
+    public static long toLong(String string, long defaultValue) {
+        try {
+            return Long.parseLong(string);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    public static Long parseLong(String string) {
+        try {
+            return Long.parseLong(string);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 }
