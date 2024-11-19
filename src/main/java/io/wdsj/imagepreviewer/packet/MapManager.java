@@ -18,12 +18,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 public class MapManager implements Listener {
     private static final Map<UUID, PacketMapDisplay> displays = new ConcurrentHashMap<>();
-    public final List<UUID> queuedPlayers = new CopyOnWriteArrayList<>();
+    public final Set<UUID> queuedPlayers = ConcurrentHashMap.newKeySet();
     private final ImagePreviewer plugin;
     private final ScheduledExecutorService executor;
 

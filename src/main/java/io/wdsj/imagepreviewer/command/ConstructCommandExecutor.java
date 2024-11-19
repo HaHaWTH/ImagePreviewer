@@ -78,6 +78,7 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     ImageLoader.imageAsData(args[1].trim())
                             .thenAccept(imageData -> {
                                 if (args.length > 2) {
+                                    ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
                                     if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW_TIME, player)) {
                                         MessageUtil.sendMessage(sender, config.message_no_permission);
                                         return;
