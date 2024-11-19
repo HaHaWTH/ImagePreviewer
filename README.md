@@ -12,7 +12,7 @@ Preview images in chat bar easily, efficiently.
 
 1. **Download the plugin**: Download the latest version of ImagePreviewer.
 2. **Install plugin**: Drop ImagePreviewer into the `./plugins` directory.
-3. **Install PacketEvents**: Download the latest version of PacketEvents.
+3. **Install [PacketEvents](https://github.com/retrooper/packetevents)**: Download the latest version of PacketEvents.
 4. **Restart Server**: Restart your server to load ImagePreviewer.
 5. Enjoy!
 
