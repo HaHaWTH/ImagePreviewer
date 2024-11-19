@@ -65,16 +65,16 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     return true;
                 }
                 if (CachingPermTool.hasPermission(PermissionsEnum.PREVIEW, player)) {
+                    if (args.length < 2) {
+                        MessageUtil.sendMessage(sender, config.message_args_error);
+                        return true;
+                    }
                     if (ImagePreviewer.getInstance().getMapManager().hasRunningPreview(player)) {
                         MessageUtil.sendMessage(sender, config.message_already_on_previewing);
                         return true;
                     }
                     if (ImagePreviewer.getInstance().getMapManager().queuedPlayers.contains(player.getUniqueId())) {
                         MessageUtil.sendMessage(sender, config.message_preview_still_loading);
-                        return true;
-                    }
-                    if (args.length < 2) {
-                        MessageUtil.sendMessage(sender, config.message_args_error);
                         return true;
                     }
                     MessageUtil.sendMessage(sender, config.message_preview_loading);
