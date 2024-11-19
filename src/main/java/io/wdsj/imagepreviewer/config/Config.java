@@ -77,7 +77,8 @@ public class Config {
                         Preview modes:
                         1. Image will move with player, like ray tracing.
                         2. Image will stay in-place, but will rotate towards player.
-                        3. Image will stay in-place.""");
+                        3. Image will stay in-place.
+                        4. Image will stay in-place, but will rotate towards player. (Only yaw)""");
         this.image_distance_to_player = getDouble("plugin.image-distance-to-player", 1.0,
                 "The distance between the player and the image.");
         this.image_preview_lifetime = getInt("plugin.image-preview-lifetime", 180,

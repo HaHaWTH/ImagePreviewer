@@ -12,6 +12,7 @@ import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageData;
 import io.wdsj.imagepreviewer.util.LocationUtil;
+import io.wdsj.imagepreviewer.util.PacketUtil;
 import io.wdsj.imagepreviewer.util.RandomUtil;
 import me.tofaa.entitylib.meta.other.ItemFrameMeta;
 import me.tofaa.entitylib.wrapper.WrapperEntity;
@@ -19,7 +20,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 
@@ -55,18 +55,7 @@ public class PacketMapDisplay {
     }
 
     public void spawn() {
-        WrapperPlayServerMapData mapData = new WrapperPlayServerMapData(
-                mapId,
-                (byte) 0,
-                false,
-                false,
-                List.of(),
-                128,
-                128,
-                0,
-                0,
-                imageData.data().getFirst()
-        );
+        WrapperPlayServerMapData mapData = PacketUtil.makePacket(mapId, imageData.data().getFirst());
         entity.addViewer(owner.getUniqueId());
         Location ownerEyeLocation = owner.getEyeLocation().clone();
         Vector direction = ownerEyeLocation.getDirection();
@@ -78,24 +67,7 @@ public class PacketMapDisplay {
         PacketEvents.getAPI().getPlayerManager().sendPacket(owner, mapData);
         plugin.getMapManager().add(owner, this);
         plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
-        if (isAnimated) {
-            long delay;
-            var dataDelay = imageData.parseFrameDelay();
-            if (dataDelay != null && !Config.isReloading && ImagePreviewer.config().gif_adaptive_frame_delay) {
-                delay = dataDelay;
-            } else {
-                delay = Config.isReloading ? 100 : ImagePreviewer.config().gif_frame_delay;
-            }
-            updateTask = plugin.getMapManager().scheduleTask(() -> {
-                int currentFrame = this.getCurrentFrame();
-                int nextFrame = currentFrame + 1;
-                if (nextFrame >= imageData.data().size()) {
-                    nextFrame = 0;
-                }
-                this.setCurrentFrame(nextFrame);
-                this.updateFrame();
-            }, 500L, delay);
-        }
+        if (isAnimated) startAnimation();
         ImagePreviewer.getScheduler().runTaskLaterAsynchronously(this::despawn, Config.isReloading ? 100L : ImagePreviewer.config().image_preview_lifetime);
     }
 
@@ -118,9 +90,7 @@ public class PacketMapDisplay {
     public void despawn() {
         plugin.getMapManager().remove(owner);
         entity.despawn();
-        if (updateTask != null) {
-            updateTask.cancel(false);
-        }
+        stopAnimation();
     }
 
     public boolean isAnimated() {
@@ -135,19 +105,32 @@ public class PacketMapDisplay {
         this.currentFrame = currentFrame;
     }
 
+    private void startAnimation() {
+        long delay;
+        var dataDelay = imageData.parseFrameDelay();
+        if (dataDelay != null && !Config.isReloading && ImagePreviewer.config().gif_adaptive_frame_delay) {
+            delay = dataDelay;
+        } else {
+            delay = Config.isReloading ? 100 : ImagePreviewer.config().gif_frame_delay;
+        }
+        updateTask = plugin.getMapManager().scheduleTask(() -> {
+            int currentFrame = this.getCurrentFrame();
+            int nextFrame = currentFrame + 1;
+            if (nextFrame >= imageData.data().size()) {
+                nextFrame = 0;
+            }
+            this.setCurrentFrame(nextFrame);
+            this.updateFrame();
+        }, 500L, delay);
+    }
+
+    private void stopAnimation() {
+        if (updateTask != null) {
+            updateTask.cancel(false);
+        }
+    }
+
     public void updateFrame() {
-        WrapperPlayServerMapData mapData = new WrapperPlayServerMapData(
-                mapId,
-                (byte) 0,
-                false,
-                false,
-                List.of(),
-                128,
-                128,
-                0,
-                0,
-                imageData.data().get(currentFrame)
-        );
-        PacketEvents.getAPI().getPlayerManager().sendPacket(owner, mapData);
+        PacketEvents.getAPI().getPlayerManager().sendPacket(owner, PacketUtil.makePacket(mapId, imageData.data().get(currentFrame)));
     }
 }

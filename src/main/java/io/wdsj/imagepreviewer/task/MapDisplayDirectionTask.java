@@ -45,6 +45,11 @@ public class MapDisplayDirectionTask extends UniversalRunnable {
                     float[] alignment2 = LocationUtil.calculateYawPitch(entityLoc2, eyeLocation);
                     entity.rotateHead(alignment2[0], alignment2[1]);
                     break;
+                case 4:
+                    Location entityLoc4 = SpigotConversionUtil.toBukkitLocation(owner.getWorld(), entity.getLocation());
+                    float[] alignment4 = LocationUtil.calculateYawPitch(entityLoc4, eyeLocation);
+                    entity.rotateHead(alignment4[0], entityLoc4.getPitch());
+                    break;
                 default:
                     break;
             }
