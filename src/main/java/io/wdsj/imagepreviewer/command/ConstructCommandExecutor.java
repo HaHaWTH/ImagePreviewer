@@ -51,8 +51,8 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     MessageUtil.sendMessage(sender, config.message_preview_loading);
                     ImagePreviewer.getInstance().getMapManager().queuedPlayers.add(player.getUniqueId());
                     ImageLoader.imageAsBytes(args[1].trim())
-                            .thenAccept(bytes -> {
-                                new PacketMapDisplay(ImagePreviewer.getInstance(), player, bytes).spawn();
+                            .thenAccept(imageData -> {
+                                new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn();
                             })
                             .exceptionally(ex -> {
                                 MessageUtil.sendMessage(sender, config.message_invalid_url);

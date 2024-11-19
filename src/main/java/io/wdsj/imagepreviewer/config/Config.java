@@ -20,6 +20,7 @@ public class Config {
     public final long image_preview_lifetime;
     public final boolean process_multi_frame_gif;
     public final long gif_frame_delay;
+    public final boolean gif_adaptive_frame_delay;
     public final boolean enable_image_cache;
     public final int cache_maximum_size;
     public final long cache_expire_time;
@@ -89,6 +90,8 @@ public class Config {
                 "If set to false, will process gifs as single image.");
         this.gif_frame_delay = getLong("plugin.gif.gif-frame-delay", 100,
                 "The delay between each frame in milliseconds.");
+        this.gif_adaptive_frame_delay = getBoolean("plugin.gif.gif-adaptive-frame-delay", true,
+                "If set to true, will use adaptive frame delay.");
         this.url_match_regex = Pattern.compile(getString("plugin.url-match-regex", "https?://[^\\s]+?\\.(?:png|bmp|jpg|jpeg|gif|webp)\\b",
                 "The regex that will be used to match the URL."));
         this.listen_for_url_match = getBoolean("plugin.listen-for-url-match", true,

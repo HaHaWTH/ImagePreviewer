@@ -4,6 +4,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.wdsj.imagepreviewer.ImagePreviewer;
+import io.wdsj.imagepreviewer.config.Config;
+import io.wdsj.imagepreviewer.util.Pair;
+import io.wdsj.imagepreviewer.util.Util;
 import org.bukkit.map.MapPalette;
 
 import javax.imageio.ImageIO;
@@ -18,6 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,7 +36,7 @@ public class ImageLoader {
             .build()
     );
 
-    private static Cache<String, List<byte[]>> imageCache;
+    private static Cache<String, ImageData> imageCache;
 
     public static void init() {
         imageCache = CacheBuilder.newBuilder()
@@ -40,8 +44,7 @@ public class ImageLoader {
                 .expireAfterWrite(5, TimeUnit.MINUTES)
                 .build();
     }
-
-    public static CompletableFuture<List<byte[]>> imageAsBytes(String urlString) {
+    public static CompletableFuture<ImageData> imageAsBytes(String urlString) {
         if (ImagePreviewer.config().enable_image_cache) {
             var cachedImage = imageCache.getIfPresent(urlString);
             if (cachedImage != null) {
@@ -52,24 +55,37 @@ public class ImageLoader {
             try {
                 URI uri = new URI(urlString);
                 URL url = uri.toURL();
-                boolean isGif = getFormatName(url).equalsIgnoreCase("gif");
-                BufferedImage[] originalImages = isGif ? readAllFrames(url) : new BufferedImage[]{ImageIO.read(url)};
-                if (originalImages.length == 0) {
-                    throw new IllegalArgumentException("The provided URL is not a valid image: " + urlString);
-                }
-                List<BufferedImage> resizedImagesList = new ArrayList<>();
-                for (BufferedImage originalImage : originalImages) {
-                    resizedImagesList.add(MapPalette.resizeImage(originalImage));
-                }
+                boolean isAnimated = getFormatName(url).equalsIgnoreCase("gif") && !Config.isReloading && ImagePreviewer.config().process_multi_frame_gif;
+                if (isAnimated) {
+                    var pairs = readAllFramesGif(url);
+                    BufferedImage[] originalImages = pairs.getLeft();
+                    if (originalImages.length == 0) {
+                        throw new IllegalArgumentException("The provided URL is not a valid image: " + urlString);
+                    }
+                    List<BufferedImage> resizedImagesList = new ArrayList<>();
+                    for (BufferedImage originalImage : originalImages) {
+                        resizedImagesList.add(MapPalette.resizeImage(originalImage));
+                    }
 
-                List<byte[]> imageDataList = new ArrayList<>();
-                for (BufferedImage resizedImage : resizedImagesList) {
-                    imageDataList.add(MapPalette.imageToBytes(resizedImage));
+                    List<byte[]> imageDataList = new ArrayList<>();
+                    for (BufferedImage resizedImage : resizedImagesList) {
+                        imageDataList.add(MapPalette.imageToBytes(resizedImage));
+                    }
+                    ImageData data = new ImageData(imageDataList, true, pairs.getRight());
+                    if (ImagePreviewer.config().enable_image_cache) {
+                        imageCache.put(urlString, data);
+                    }
+                    return data;
+                } else {
+                    BufferedImage originalImage = ImageIO.read(url);
+                    BufferedImage resizedImage = MapPalette.resizeImage(originalImage);
+                    List<byte[]> imageDataList = List.of(MapPalette.imageToBytes(resizedImage));
+                    ImageData data = new ImageData(imageDataList);
+                    if (ImagePreviewer.config().enable_image_cache) {
+                        imageCache.put(urlString, data);
+                    }
+                    return data;
                 }
-                if (ImagePreviewer.config().enable_image_cache) {
-                    imageCache.put(urlString, imageDataList);
-                }
-                return imageDataList;
             } catch (IOException | URISyntaxException e) {
                 throw new RuntimeException("Failed to download or process the image from URL: " + urlString, e);
             }
@@ -83,7 +99,7 @@ public class ImageLoader {
         }
     }
 
-    private static BufferedImage[] readAllFrames(URL url) throws IOException {
+    private static Pair<BufferedImage[], Optional<Integer>> readAllFramesGif(URL url) throws IOException {
         List<BufferedImage> frames = new ArrayList<>();
         try (ImageInputStream input = ImageIO.createImageInputStream(url.openStream())) {
             ImageReader reader = ImageIO.getImageReadersByFormatName("gif").next();
@@ -93,8 +109,17 @@ public class ImageLoader {
             for (int i = 0; i < frameCount; i++) {
                 frames.add(reader.read(i));
             }
+
+            IIOMetadata imageMetaData =  reader.getImageMetadata(0);
+            String metaFormatName = imageMetaData.getNativeMetadataFormatName();
+            IIOMetadataNode root = (IIOMetadataNode)imageMetaData.getAsTree(metaFormatName);
+            IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
+            if (graphicsControlExtensionNode != null) {
+                return Pair.of(frames.toArray(new BufferedImage[0]), Optional.of(Util.toInt(graphicsControlExtensionNode.getAttribute("delayTime"), -1)));
+            } else {
+                return Pair.of(frames.toArray(new BufferedImage[0]), Optional.empty());
+            }
         }
-        return frames.toArray(new BufferedImage[0]);
     }
 
     @SuppressWarnings("all")

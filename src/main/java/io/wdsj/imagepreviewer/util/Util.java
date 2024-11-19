@@ -9,4 +9,12 @@ public class Util {
             return false;
         }
     }
+
+    public static int toInt(String string, int defaultValue) {
+        try {
+            return Integer.parseInt(string);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 }

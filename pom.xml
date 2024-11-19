@@ -66,14 +66,6 @@
                                     <shadedPattern>io.wdsj.imagepreviewer.lib.universalScheduler</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google.auto</pattern>
-                                    <shadedPattern>io.wdsj.imagepreviewer.lib.google.auto</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.gson</pattern>
-                                    <shadedPattern>io.wdsj.imagepreviewer.lib.google.gson</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>io.github.thatsmusic99.configurationmaster</pattern>
                                     <shadedPattern>io.wdsj.imagepreviewer.lib.config</shadedPattern>
                                 </relocation>
@@ -141,8 +133,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
             <version>1.21.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
