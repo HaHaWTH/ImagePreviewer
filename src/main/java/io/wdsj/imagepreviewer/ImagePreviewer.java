@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 public class ImagePreviewer extends JavaPlugin {
     private static ImagePreviewer instance;
-    public static final String PLUGIN_VERSION = "1.0";
+    public static final String PLUGIN_VERSION = "1.1";
     public static Logger LOGGER;
     private static Config config;
     private MapManager mapManager;

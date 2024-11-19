@@ -1,5 +1,5 @@
 name: ImagePreviewer
-version: '1.0'
+version: ${project.version}
 main: io.wdsj.imagepreviewer.ImagePreviewer
 api-version: '1.13'
 authors:
