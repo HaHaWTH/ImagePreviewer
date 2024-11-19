@@ -19,6 +19,7 @@ public class MapDisplayDirectionTask extends UniversalRunnable {
     @Override
     public void run() {
         if (Config.isReloading) return;
+        if (ImagePreviewer.config().preview_mode == 3) return;
         List<PacketMapDisplay> displays = plugin.getMapManager().getDisplays();
         if (displays.isEmpty()) {
             return;
@@ -31,16 +32,21 @@ public class MapDisplayDirectionTask extends UniversalRunnable {
             var entity = display.getEntity();
             Location eyeLocation = owner.getEyeLocation().clone();
             Vector direction = eyeLocation.getDirection();
-            if (ImagePreviewer.config().enable_ray_trace) {
-                Location entityLoc = eyeLocation.add(direction.multiply(ImagePreviewer.config().image_distance_to_player));
-                float[] alignment = LocationUtil.calculateYawPitch(entityLoc, eyeLocation);
-                entityLoc.setYaw(alignment[0]);
-                entityLoc.setPitch(alignment[1]);
-                entity.teleport(SpigotConversionUtil.fromBukkitLocation(entityLoc));
-            } else {
-                Location entityLoc = SpigotConversionUtil.toBukkitLocation(owner.getWorld(), entity.getLocation());
-                float[] alignment = LocationUtil.calculateYawPitch(entityLoc, eyeLocation);
-                entity.rotateHead(alignment[0], alignment[1]);
+            switch (ImagePreviewer.config().preview_mode) {
+                case 1:
+                    Location entityLoc = eyeLocation.add(direction.multiply(ImagePreviewer.config().image_distance_to_player));
+                    float[] alignment = LocationUtil.calculateYawPitch(entityLoc, eyeLocation);
+                    entityLoc.setYaw(alignment[0]);
+                    entityLoc.setPitch(alignment[1]);
+                    entity.teleport(SpigotConversionUtil.fromBukkitLocation(entityLoc));
+                    break;
+                case 2:
+                    Location entityLoc2 = SpigotConversionUtil.toBukkitLocation(owner.getWorld(), entity.getLocation());
+                    float[] alignment2 = LocationUtil.calculateYawPitch(entityLoc2, eyeLocation);
+                    entity.rotateHead(alignment2[0], alignment2[1]);
+                    break;
+                default:
+                    break;
             }
         }
     }

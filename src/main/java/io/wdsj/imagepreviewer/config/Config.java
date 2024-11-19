@@ -15,7 +15,7 @@ public class Config {
     private final ImagePreviewer plugin;
     public static boolean isReloading = false;
     public final boolean check_for_update;
-    public final boolean enable_ray_trace;
+    public final int preview_mode;
     public final double image_distance_to_player;
     public final long image_preview_lifetime;
     public final boolean process_multi_frame_gif;
@@ -72,8 +72,12 @@ public class Config {
         );
 
 
-        this.enable_ray_trace = getBoolean("plugin.enable-ray-trace", false,
-                "If set to true, will enable ray trace to sync image location.");
+        this.preview_mode = getInt("plugin.preview-mode", 2,
+                """
+                        Preview modes:
+                        1. Image will move with player, like ray tracing.
+                        2. Image will stay in-place, but will rotate towards player.
+                        3. Image will stay in-place.""");
         this.image_distance_to_player = getDouble("plugin.image-distance-to-player", 1.0,
                 "The distance between the player and the image.");
         this.image_preview_lifetime = getInt("plugin.image-preview-lifetime", 180,
