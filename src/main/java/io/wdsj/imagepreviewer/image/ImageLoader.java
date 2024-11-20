@@ -14,6 +14,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
@@ -106,13 +107,69 @@ public class ImageLoader {
             reader.setInput(input, false);
 
             int frameCount = reader.getNumImages(true);
+            BufferedImage previousFrame = null;
+
             for (int i = 0; i < frameCount; i++) {
-                frames.add(reader.read(i));
+                BufferedImage currentFrame = reader.read(i);
+
+                IIOMetadata metadata = reader.getImageMetadata(i);
+                String metaFormatName = metadata.getNativeMetadataFormatName();
+                IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(metaFormatName);
+
+                IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
+                String disposeMethod = "none";
+                if (graphicsControlExtensionNode != null) {
+                    disposeMethod = graphicsControlExtensionNode.getAttribute("disposalMethod");
+                }
+
+                IIOMetadataNode imageDescriptorNode = getNode(root, "ImageDescriptor");
+                int imageLeft = 0, imageTop = 0;
+                if (imageDescriptorNode != null) {
+                    imageLeft = Integer.parseInt(imageDescriptorNode.getAttribute("imageLeftPosition"));
+                    imageTop = Integer.parseInt(imageDescriptorNode.getAttribute("imageTopPosition"));
+                }
+
+                // Create a full-size frame if necessary
+                if (previousFrame == null) {
+                    previousFrame = new BufferedImage(
+                            reader.getWidth(i),
+                            reader.getHeight(i),
+                            BufferedImage.TYPE_INT_ARGB
+                    );
+                }
+
+                // Draw the current frame onto the full-size image
+                BufferedImage combinedFrame = new BufferedImage(
+                        previousFrame.getWidth(),
+                        previousFrame.getHeight(),
+                        BufferedImage.TYPE_INT_ARGB
+                );
+                Graphics2D g = combinedFrame.createGraphics();
+                g.drawImage(previousFrame, 0, 0, null);
+                g.drawImage(currentFrame, imageLeft, imageTop, null);
+                g.dispose();
+
+                frames.add(combinedFrame);
+
+                switch (disposeMethod) {
+                    case "restoreToBackgroundColor":
+                        previousFrame = new BufferedImage(
+                                previousFrame.getWidth(),
+                                previousFrame.getHeight(),
+                                BufferedImage.TYPE_INT_ARGB
+                        );
+                        break;
+                    case "restoreToPrevious":
+                        break;
+                    default:
+                        previousFrame = combinedFrame;
+                        break;
+                }
             }
 
-            IIOMetadata imageMetaData =  reader.getImageMetadata(0);
+            IIOMetadata imageMetaData = reader.getImageMetadata(0);
             String metaFormatName = imageMetaData.getNativeMetadataFormatName();
-            IIOMetadataNode root = (IIOMetadataNode)imageMetaData.getAsTree(metaFormatName);
+            IIOMetadataNode root = (IIOMetadataNode) imageMetaData.getAsTree(metaFormatName);
             IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
             if (graphicsControlExtensionNode != null) {
                 return Pair.of(frames.toArray(new BufferedImage[0]), Optional.of(Util.toInt(graphicsControlExtensionNode.getAttribute("delayTime"), -1)));
