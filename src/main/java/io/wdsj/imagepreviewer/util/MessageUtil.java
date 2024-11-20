@@ -8,4 +8,8 @@ public class MessageUtil {
         if (message.isBlank()) return;
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
+
+    public static String translateColors(String message) {
+        return ChatColor.translateAlternateColorCodes('&', message);
+    }
 }

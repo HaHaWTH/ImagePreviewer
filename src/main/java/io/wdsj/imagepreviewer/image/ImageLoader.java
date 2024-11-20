@@ -59,7 +59,7 @@ public class ImageLoader {
                 boolean isAnimated = getFormatName(url).equalsIgnoreCase("gif") && !Config.isReloading && ImagePreviewer.config().process_multi_frame_gif;
                 if (isAnimated) {
                     var pairs = readAllFramesGif(url);
-                    BufferedImage[] originalImages = pairs.getLeft();
+                    BufferedImage[] originalImages = pairs.left();
                     if (originalImages.length == 0) {
                         throw new IllegalArgumentException("The provided URL is not a valid image: " + urlString);
                     }
@@ -72,7 +72,7 @@ public class ImageLoader {
                     for (BufferedImage resizedImage : resizedImagesList) {
                         imageDataList.add(MapPalette.imageToBytes(resizedImage));
                     }
-                    ImageData data = new ImageData(imageDataList, true, pairs.getRight());
+                    ImageData data = new ImageData(imageDataList, true, pairs.right());
                     if (ImagePreviewer.config().enable_image_cache) {
                         imageCache.put(urlString, data);
                     }

@@ -2,14 +2,12 @@ package io.wdsj.imagepreviewer;
 
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
-import com.github.Anon8281.universalScheduler.scheduling.tasks.MyScheduledTask;
 import io.wdsj.imagepreviewer.command.ConstructCommandExecutor;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.listener.ChatListener;
 import io.wdsj.imagepreviewer.packet.MapManager;
 import io.wdsj.imagepreviewer.permission.CachingPermTool;
-import io.wdsj.imagepreviewer.task.MapDisplayDirectionTask;
 import io.wdsj.imagepreviewer.update.Updater;
 import io.wdsj.imagepreviewer.util.Util;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -26,7 +24,7 @@ import java.util.logging.Logger;
 
 public class ImagePreviewer extends JavaPlugin {
     private static ImagePreviewer instance;
-    public static final String PLUGIN_VERSION = "1.1";
+    public static final String PLUGIN_VERSION = "1.2";
     public static Logger LOGGER;
     private static Config config;
     private MapManager mapManager;

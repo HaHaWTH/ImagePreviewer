@@ -8,6 +8,8 @@ authors:
 folia-supported: true
 depend:
   - packetevents
+softdepend:
+  - floodgate
 permissions:
   imagepreviewer.*:
     default: false
@@ -18,9 +20,13 @@ permissions:
       imagepreviewer.command.reload: true
       imagepreviewer.command.help: true
       imagepreviewer.command.cancel: true
+      imagepreviewer.command.history: true
   imagepreviewer.command.reload:
     default: op
     description: Allows the reloading of the plugin's configuration.
+  imagepreviewer.command.history:
+    default: true
+    description: Allows the display of the previous history.
   imagepreviewer.command.help:
     default: true
     description: Allows the display of the plugin's help menu.

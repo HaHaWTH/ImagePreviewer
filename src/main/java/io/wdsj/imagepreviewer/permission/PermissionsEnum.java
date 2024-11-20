@@ -5,6 +5,7 @@ public enum PermissionsEnum {
     PREVIEW_TIME("imagepreviewer.use.time"),
     CANCEL_PREVIEW("imagepreviewer.command.cancel"),
     RELOAD("imagepreviewer.command.reload"),
+    HISTORY("imagepreviewer.command.history"),
     HELP("imagepreviewer.command.help");
 
     private final String permission;

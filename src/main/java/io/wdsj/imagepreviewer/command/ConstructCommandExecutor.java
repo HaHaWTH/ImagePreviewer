@@ -2,12 +2,17 @@ package io.wdsj.imagepreviewer.command;
 
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
+import io.wdsj.imagepreviewer.hook.floodgate.FloodgateHook;
 import io.wdsj.imagepreviewer.image.ImageLoader;
+import io.wdsj.imagepreviewer.listener.ChatListener;
 import io.wdsj.imagepreviewer.packet.PacketMapDisplay;
 import io.wdsj.imagepreviewer.permission.CachingPermTool;
 import io.wdsj.imagepreviewer.permission.PermissionsEnum;
 import io.wdsj.imagepreviewer.util.MessageUtil;
 import io.wdsj.imagepreviewer.util.Util;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -35,6 +40,34 @@ public class ConstructCommandExecutor implements CommandExecutor {
             }
             if (args[0].equalsIgnoreCase("help")) {
                 MessageUtil.sendMessage(sender, config.message_no_permission);
+                return true;
+            }
+            if (args[0].equalsIgnoreCase("history")) {
+                if (!(sender instanceof Player player)) {
+                    MessageUtil.sendMessage(sender, config.message_command_player_only);
+                    return true;
+                }
+                if (!CachingPermTool.hasPermission(PermissionsEnum.HISTORY, player)) {
+                    MessageUtil.sendMessage(sender, config.message_no_permission);
+                    return true;
+                }
+                if (ChatListener.getUrlHistory().isEmpty()) {
+                    MessageUtil.sendMessage(sender, config.message_no_history_to_show);
+                    return true;
+                }
+                if (config.hook_floodgate && FloodgateHook.isFloodgatePresent() && FloodgateHook.isFloodgatePlayer(player)) {
+                    var fgPlayer = FloodgateHook.getFloodgatePlayer(player);
+                    new FloodgateHook.PreviewHistoryForm().sendForm(fgPlayer);
+                } else {
+                    MessageUtil.sendMessage(sender, config.message_history_command);
+                    int index = 1;
+                    for (var entry : ChatListener.getUrlHistory()) {
+                        var component = Component.text(index++ + ". " + entry.sender() + ": " + entry.message())
+                                .color(NamedTextColor.GRAY)
+                                .clickEvent(ClickEvent.runCommand("/imagepreviewer preview " + entry.message()));
+                        ImagePreviewer.getInstance().getAudiences().player(player).sendMessage(component);
+                    }
+                }
                 return true;
             }
             if (args[0].equalsIgnoreCase("cancel")) {

@@ -6,7 +6,7 @@
 
     <groupId>io.wdsj</groupId>
     <artifactId>imagepreviewer</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
 
     <name>ImagePreviewer</name>
@@ -102,6 +102,14 @@
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
         <repository>
+            <id>opencollab-main</id>
+            <url>https://repo.opencollab.dev/main/</url>
+        </repository>
+        <repository>
+            <id>opencollab-snapshots</id>
+            <url>https://repo.opencollab.dev/maven-snapshots/</url>
+        </repository>
+        <repository>
             <id>jitpack</id>
             <url>https://jitpack.io</url>
             <snapshots>
@@ -172,6 +180,12 @@
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents-spigot</artifactId>
             <version>2.6.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc.floodgate</groupId>
+            <artifactId>api</artifactId>
+            <version>2.2.2-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

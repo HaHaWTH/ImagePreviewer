@@ -26,14 +26,18 @@ public class Config {
     public final int cache_maximum_size;
     public final long cache_expire_time;
     public final boolean preload_images_in_chat;
-    public final boolean listen_for_url_match;
+    public final boolean broadcast_on_match;
     public final Pattern url_match_regex;
     public final boolean use_invisible_item_frame, use_glowing_item_frame;
     public final String message_reload_success, message_preview_loading,
     message_no_permission, message_invalid_url, message_command_player_only,
     message_unknown_command, message_already_on_previewing, message_url_matched, message_hover_event
             , message_preview_still_loading, message_help_info, message_args_error, message_cancel_success,
-    message_nothing_to_cancel;
+    message_nothing_to_cancel, message_history_command, message_no_history_to_show;
+
+    public final String form_title, form_history_content;
+
+    public final boolean hook_floodgate;
 
     public Config(ImagePreviewer plugin, File dataFolder) throws Exception {
         this.plugin = plugin;
@@ -68,18 +72,25 @@ public class Config {
                 "The message that will be sent to the player when the URL is matched.");
         this.message_hover_event = getString("message.hover-event", "Click to preview image",
                 "The hover event that will be sent to the player when they hover over the image.");
-        this.message_help_info = getString("message.help-info", """
+        this.message_history_command = getString("message.command.history.header", "&eImagePreviewer History &b(Click link to preview)",
+                "The message that will be sent to the player when they enter the history command.");
+        this.message_no_history_to_show = getString("message.command.history.no-history", "&cNo history to show.",
+                "The message that will be sent to the player when they enter the history command and there is no history to show.");
+        this.message_help_info = getString("message.command.help.help-info", """
                 &b&l&nImage Previewer
                 &a/imagepreviewer reload &7- Reload the plugin
                 &a/imagepreviewer help &7- Show this message
                 &a/imagepreviewer preview <url> [time-ticks] &7- Preview an image from given url
-                &a/imagepreviewer cancel &7- Cancel running preview"""
+                &a/imagepreviewer cancel &7- Cancel running preview
+                &a/imagepreviewer history &7- Show previous url history"""
         );
-        this.message_cancel_success = getString("message.cancel-success", "&aCancelled image preview.",
+        this.message_cancel_success = getString("message.command.cancel.cancel-success", "&aCancelled image preview.",
                 "The message that will be sent to the player when they cancel the image preview.");
-        this.message_nothing_to_cancel = getString("message.nothing-to-cancel", "&cYou are not on previewing.",
+        this.message_nothing_to_cancel = getString("message.command.cancel.nothing-to-cancel", "&cYou are not on previewing.",
                 "The message that will be sent to the player when they are not on previewing.");
 
+        this.form_title = getString("message.form.title", "&e&lImage Previewer", "The title of the form.");
+        this.form_history_content = getString("message.form.history-form.content", "Previous image urls in chat", "The content of the history form.");
 
         this.preview_mode = getInt("plugin.preview-mode", 2,
                 """
@@ -110,12 +121,14 @@ public class Config {
                 "If set to true, will use adaptive frame delay.");
         this.url_match_regex = Pattern.compile(getString("plugin.url-match-regex", "https?://[^\\s]+?\\.(?:png|bmp|jpg|jpeg|gif|webp)\\b",
                 "The regex that will be used to match the URL."));
-        this.listen_for_url_match = getBoolean("plugin.listen-for-url-match", true,
-                "If set to true, will listen for url match and send message to player.");
+        this.broadcast_on_match = getBoolean("plugin.broadcast-on-match", false,
+                "If set to true, will broadcast the matched URL component to all players.");
         this.use_invisible_item_frame = getBoolean("plugin.use-invisible-item-frame", false,
                 "If set to true, will use invisible item frame to display image.");
         this.use_glowing_item_frame = getBoolean("plugin.use-glowing-item-frame", false,
                 "If set to true, will use glowing item frame to display image.");
+
+        this.hook_floodgate = getBoolean("hook.floodgate", true);
     }
 
     public void saveConfig() {
@@ -129,6 +142,8 @@ public class Config {
     private void structureConfig() {
         createTitledSection("Plugin general setting", "plugin");
         createTitledSection("Message", "message");
+        createTitledSection("Floodgate form message", "message.form");
+        createTitledSection("Plugin hook", "hook");
     }
 
     public void createTitledSection(String title, String path) {
