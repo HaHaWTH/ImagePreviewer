@@ -11,6 +11,7 @@ import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageData;
+import io.wdsj.imagepreviewer.task.MapDisplayDirectionTask;
 import io.wdsj.imagepreviewer.util.LocationUtil;
 import io.wdsj.imagepreviewer.util.PacketUtil;
 import io.wdsj.imagepreviewer.util.RandomUtil;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 
 public class PacketMapDisplay {
+    private static final long TICK_TO_MILLISECONDS = 50L;
     private final ImagePreviewer plugin;
     private final WrapperEntity entity;
     private final Player owner;
@@ -31,8 +33,11 @@ public class PacketMapDisplay {
     private final boolean isAnimated;
     private int currentFrame;
     private final int mapId;
-    private ScheduledFuture<?> updateTask;
+    private ScheduledFuture<?> updateFrameTask;
+    private ScheduledFuture<?> tickLifecycleTask;
+    private ScheduledFuture<?> locationUpdateTask;
     private final long lifecycleTicks;
+    private long ticksSurvived;
 
     public PacketMapDisplay(ImagePreviewer plugin, Player owner, ImageData imageData) {
         this.plugin = plugin;
@@ -41,6 +46,7 @@ public class PacketMapDisplay {
         this.isAnimated = imageData.animated();
         this.lifecycleTicks = Config.isReloading ? 100L : ImagePreviewer.config().image_preview_lifetime;
         this.currentFrame = 0;
+        this.ticksSurvived = 0;
         final int entityId = plugin.getMapManager().getEntityId();
         this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
         ItemFrameMeta meta = (ItemFrameMeta) entity.getEntityMeta();
@@ -63,6 +69,7 @@ public class PacketMapDisplay {
         this.isAnimated = imageData.animated();
         this.lifecycleTicks = lifecycleTicks;
         this.currentFrame = 0;
+        this.ticksSurvived = 0;
         final int entityId = plugin.getMapManager().getEntityId();
         this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
         ItemFrameMeta meta = (ItemFrameMeta) entity.getEntityMeta();
@@ -92,7 +99,15 @@ public class PacketMapDisplay {
         PacketEvents.getAPI().getPlayerManager().sendPacket(owner, mapData);
         plugin.getMapManager().track(owner, this);
         if (isAnimated) startAnimation();
-        ImagePreviewer.getScheduler().runTaskLaterAsynchronously(this::despawn, lifecycleTicks);
+        tickLifecycleTask = plugin.getMapManager().scheduleTaskAtFixedRate(() -> {
+            if (ticksSurvived >= lifecycleTicks) {
+                this.despawn();
+            } else {
+                ticksSurvived += 1;
+            }
+        }, TICK_TO_MILLISECONDS, TICK_TO_MILLISECONDS);
+        final long locationUpdateInterval = Config.isReloading ? 50L : ImagePreviewer.config().location_update_interval;
+        locationUpdateTask = plugin.getMapManager().scheduleTaskAtFixedRate(new MapDisplayDirectionTask(this), locationUpdateInterval, locationUpdateInterval);
     }
 
     public WrapperEntity getEntity() {
@@ -103,22 +118,19 @@ public class PacketMapDisplay {
         return owner;
     }
 
-    public int getMapId() {
-        return mapId;
-    }
-
-    public ImageData getImageData() {
-        return imageData;
-    }
-
     public void despawn() {
-        plugin.getMapManager().untrack(owner);
+        if (tickLifecycleTask != null) {
+            tickLifecycleTask.cancel(false);
+            tickLifecycleTask = null;
+        }
+        if (locationUpdateTask != null) {
+            locationUpdateTask.cancel(false);
+            locationUpdateTask = null;
+        }
         entity.despawn();
+        plugin.getMapManager().untrack(owner);
+        ticksSurvived = 0;
         stopAnimation();
-    }
-
-    public boolean isAnimated() {
-        return isAnimated;
     }
 
     public int getCurrentFrame() {
@@ -135,9 +147,9 @@ public class PacketMapDisplay {
         if (dataDelay != null && !Config.isReloading && ImagePreviewer.config().gif_adaptive_frame_delay) {
             delay = dataDelay;
         } else {
-            delay = Config.isReloading ? 100 : ImagePreviewer.config().gif_frame_delay;
+            delay = Config.isReloading ? 100L : ImagePreviewer.config().gif_frame_delay;
         }
-        updateTask = plugin.getMapManager().scheduleTask(() -> {
+        updateFrameTask = plugin.getMapManager().scheduleTaskAtFixedRate(() -> {
             int currentFrame = this.getCurrentFrame();
             int nextFrame = currentFrame + 1;
             if (nextFrame >= imageData.data().size()) {
@@ -149,8 +161,9 @@ public class PacketMapDisplay {
     }
 
     private void stopAnimation() {
-        if (updateTask != null) {
-            updateTask.cancel(false);
+        if (updateFrameTask != null) {
+            updateFrameTask.cancel(false);
+            updateFrameTask = null;
         }
     }
 

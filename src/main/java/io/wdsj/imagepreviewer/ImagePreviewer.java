@@ -33,7 +33,6 @@ public class ImagePreviewer extends JavaPlugin {
     private File dataFolder;
     private CachingPermTool permTool;
     private static TaskScheduler scheduler;
-    private MyScheduledTask playerRaytraceTask;
     private BukkitAudiences audiences;
     public static final boolean isPaper = Util.isClassLoaded("com.destroystokyo.paper.PaperConfig");
     public static ImagePreviewer getInstance() {
@@ -56,7 +55,6 @@ public class ImagePreviewer extends JavaPlugin {
         permTool = CachingPermTool.enable(this);
         ImageLoader.init();
         Objects.requireNonNull(getCommand("imagepreviewer")).setExecutor(new ConstructCommandExecutor());
-        playerRaytraceTask = new MapDisplayDirectionTask(this).runTaskTimerAsynchronously(this, 40L, 1L);
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
         Metrics metrics = new Metrics(this, 23927);
         LOGGER.info("ImagePreviewer is enabled!");
@@ -86,9 +84,6 @@ public class ImagePreviewer extends JavaPlugin {
         if (audiences != null) {
             audiences.close();
             audiences = null;
-        }
-        if (!playerRaytraceTask.isCancelled()) {
-            playerRaytraceTask.cancel();
         }
         LOGGER.info("ImagePreviewer is disabled.");
     }

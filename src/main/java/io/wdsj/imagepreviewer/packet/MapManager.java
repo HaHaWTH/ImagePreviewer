@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.*;
 
 public class MapManager implements Listener {
-    private static final Map<UUID, PacketMapDisplay> displays = new ConcurrentHashMap<>();
+    private final Map<UUID, PacketMapDisplay> displays = new ConcurrentHashMap<>();
     public final Set<UUID> queuedPlayers = ConcurrentHashMap.newKeySet();
     private final ImagePreviewer plugin;
     private final ScheduledExecutorService executor;
@@ -32,7 +32,8 @@ public class MapManager implements Listener {
         this.plugin = plugin;
         this.initialize();
         executor = new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder()
-                .setNameFormat("ImagePreviewer-MapManager")
+                .setNameFormat("ImagePreviewer MapManager")
+                .setThreadFactory(Thread.ofVirtual().factory())
                 .setDaemon(true)
                 .build()
         );
@@ -46,8 +47,12 @@ public class MapManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    public ScheduledFuture<?> scheduleTask(Runnable runnable, long delay, long period) {
+    public ScheduledFuture<?> scheduleTaskAtFixedRate(Runnable runnable, long delay, long period) {
         return executor.scheduleAtFixedRate(runnable, delay, period, TimeUnit.MILLISECONDS);
+    }
+
+    public ScheduledFuture<?> scheduleTaskLater(Runnable runnable, long delay) {
+        return executor.schedule(runnable, delay, TimeUnit.MILLISECONDS);
     }
 
     public void track(Player player, PacketMapDisplay display) {

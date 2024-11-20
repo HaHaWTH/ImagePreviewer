@@ -17,6 +17,7 @@ public class Config {
     public final boolean check_for_update;
     public final int preview_mode;
     public final double image_distance_to_player;
+    public final long location_update_interval;
     public final long image_preview_lifetime;
     public final boolean process_multi_frame_gif;
     public final long gif_frame_delay;
@@ -87,6 +88,8 @@ public class Config {
                         2. Image will stay in-place, but will rotate towards player.
                         3. Image will stay in-place.
                         4. Image will stay in-place, but will rotate towards player. (Only yaw)""");
+        this.location_update_interval = getLong("plugin.location-update-interval", 50,
+                "How often the image preview will update its location in milliseconds.");
         this.image_distance_to_player = getDouble("plugin.image-distance-to-player", 1.0,
                 "The distance between the player and the image.");
         this.image_preview_lifetime = getInt("plugin.image-preview-lifetime", 180,

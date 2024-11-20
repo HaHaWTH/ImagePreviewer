@@ -31,7 +31,7 @@ public class ImageLoader {
 
     private static final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder()
             .setDaemon(true)
-            .setNameFormat("ImagePreviewer-ImageLoader")
+            .setNameFormat("ImagePreviewer ImageLoader")
             .setThreadFactory(Thread.ofVirtual().factory())
             .build()
     );

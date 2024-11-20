@@ -11,10 +11,10 @@ public class RandomUtil {
     }
 
     public static int genRandomMapId() {
-        int id = genRandomInteger(100, Integer.MAX_VALUE);
-        if (Bukkit.getMap(id) != null) {
-            return genRandomMapId();
-        }
+        int id;
+        do {
+            id = genRandomInteger(100, Integer.MAX_VALUE);
+        } while (Bukkit.getMap(id) != null);
         return id;
     }
 }
