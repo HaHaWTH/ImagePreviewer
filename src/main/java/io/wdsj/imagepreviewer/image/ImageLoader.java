@@ -129,7 +129,6 @@ public class ImageLoader {
                     imageTop = Integer.parseInt(imageDescriptorNode.getAttribute("imageTopPosition"));
                 }
 
-                // Create a full-size frame if necessary
                 if (previousFrame == null) {
                     previousFrame = new BufferedImage(
                             reader.getWidth(i),
@@ -137,8 +136,6 @@ public class ImageLoader {
                             BufferedImage.TYPE_INT_ARGB
                     );
                 }
-
-                // Draw the current frame onto the full-size image
                 BufferedImage combinedFrame = new BufferedImage(
                         previousFrame.getWidth(),
                         previousFrame.getHeight(),

@@ -19,7 +19,7 @@ public class ConstructTabCompleter implements TabCompleter {
             List<String> tabComplete = new ArrayList<>();
             if (sender.hasPermission(PermissionsEnum.RELOAD.getPermission()) && args[0].startsWith("r")) {
                 tabComplete.add("reload");
-            } else if (sender.hasPermission(PermissionsEnum.HELP.getPermission()) && args[0].startsWith("h")) {
+            } else if (sender.hasPermission(PermissionsEnum.HELP.getPermission()) && args[0].startsWith("he")) {
                 tabComplete.add("help");
             } else if (sender.hasPermission(PermissionsEnum.CANCEL_PREVIEW.getPermission()) && args[0].startsWith("i")) {
                 tabComplete.add("cancel");
