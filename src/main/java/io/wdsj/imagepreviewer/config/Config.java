@@ -93,7 +93,7 @@ public class Config {
         this.image_distance_to_player = getDouble("plugin.image-distance-to-player", 1.0,
                 "The distance between the player and the image.");
         this.image_preview_lifetime = getInt("plugin.image-preview-lifetime", 180,
-                "How long can one image preview survive.");
+                "How long can one image preview survive in ticks.");
         this.enable_image_cache = getBoolean("plugin.image-cache.enabled", true,
                 "Whether to cache converted image data.");
         this.cache_maximum_size = getInt("plugin.image-cache.cache-maximum-size", 100,
