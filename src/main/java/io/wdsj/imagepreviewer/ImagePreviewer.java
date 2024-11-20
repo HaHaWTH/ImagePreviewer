@@ -3,6 +3,7 @@ package io.wdsj.imagepreviewer;
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
 import io.wdsj.imagepreviewer.command.ConstructCommandExecutor;
+import io.wdsj.imagepreviewer.command.ConstructTabCompleter;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.listener.ChatListener;
@@ -53,6 +54,7 @@ public class ImagePreviewer extends JavaPlugin {
         permTool = CachingPermTool.enable(this);
         ImageLoader.init();
         Objects.requireNonNull(getCommand("imagepreviewer")).setExecutor(new ConstructCommandExecutor());
+        Objects.requireNonNull(getCommand("imagepreviewer")).setTabCompleter(new ConstructTabCompleter());
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
         Metrics metrics = new Metrics(this, 23927);
         LOGGER.info("ImagePreviewer is enabled!");
@@ -77,6 +79,7 @@ public class ImagePreviewer extends JavaPlugin {
     public void onDisable() {
         permTool.disable();
         Objects.requireNonNull(getCommand("imagepreviewer")).setExecutor(null);
+        Objects.requireNonNull(getCommand("imagepreviewer")).setTabCompleter(null);
         mapManager.close();
         HandlerList.unregisterAll(this);
         if (audiences != null) {
