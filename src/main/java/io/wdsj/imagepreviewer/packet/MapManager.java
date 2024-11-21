@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import io.wdsj.imagepreviewer.ImagePreviewer;
+import io.wdsj.imagepreviewer.util.VirtualThreadUtil;
 import me.tofaa.entitylib.APIConfig;
 import me.tofaa.entitylib.EntityLib;
 import me.tofaa.entitylib.spigot.SpigotEntityLibPlatform;
@@ -33,7 +34,7 @@ public class MapManager implements Listener {
         this.initialize();
         executor = new ScheduledThreadPoolExecutor(1, new ThreadFactoryBuilder()
                 .setNameFormat("ImagePreviewer MapManager")
-                .setThreadFactory(Thread.ofVirtual().factory())
+                .setThreadFactory(VirtualThreadUtil.newVirtualThreadFactoryOrDefault())
                 .setDaemon(true)
                 .build()
         );

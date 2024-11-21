@@ -96,7 +96,7 @@ public class PacketMapDisplay {
         entityLoc.setYaw(alignment[0]);
         entityLoc.setPitch(alignment[1]);
         entity.spawn(SpigotConversionUtil.fromBukkitLocation(entityLoc));
-        PacketEvents.getAPI().getPlayerManager().sendPacket(owner, mapData);
+        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, mapData);
         plugin.getMapManager().track(owner, this);
         if (isAnimated) startAnimation();
         tickLifecycleTask = plugin.getMapManager().scheduleTaskAtFixedRate(() -> {
@@ -168,6 +168,6 @@ public class PacketMapDisplay {
     }
 
     public void updateFrame() {
-        PacketEvents.getAPI().getPlayerManager().sendPacket(owner, PacketUtil.makePacket(mapId, imageData.data().get(currentFrame)));
+        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, PacketUtil.makePacket(mapId, imageData.data().get(currentFrame)));
     }
 }

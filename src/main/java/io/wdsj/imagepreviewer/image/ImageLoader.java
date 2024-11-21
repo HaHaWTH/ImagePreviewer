@@ -7,6 +7,7 @@ import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.util.Pair;
 import io.wdsj.imagepreviewer.util.Util;
+import io.wdsj.imagepreviewer.util.VirtualThreadUtil;
 import org.bukkit.map.MapPalette;
 
 import javax.imageio.ImageIO;
@@ -33,7 +34,7 @@ public class ImageLoader {
     private static final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder()
             .setDaemon(true)
             .setNameFormat("ImagePreviewer ImageLoader")
-            .setThreadFactory(Thread.ofVirtual().factory())
+            .setThreadFactory(VirtualThreadUtil.newVirtualThreadFactoryOrDefault())
             .build()
     );
 
