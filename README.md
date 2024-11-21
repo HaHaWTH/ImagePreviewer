@@ -26,6 +26,7 @@ Preview images in chat bar easily, efficiently.
 - `/imagepreview preview <url> [time-ticks]`: Preview an image from a URL with a custom duration.
 - `/imagepreview cancel`: Cancel the preview.
 - `/imagepreview reload`: Reload the plugin config.
+- `/imagepreview history`: Show preview history.
 - `/imagepreview help`: Show help message.
 
 ## Permissions
@@ -34,6 +35,7 @@ Preview images in chat bar easily, efficiently.
 - `imagepreviewer.use.time`: Allows the user to preview images for a specific duration.
 - `imagepreviewer.command.reload`: Allows the user to reload the plugin.
 - `imagepreviewer.command.help`: Allows the user to view help message.
+- `imagepreviewer.command.history`: Allows the user to view preview history.
 - `imagepreviewer.command.cancel`: Allows the user to cancel the preview.
 
 ## Compatibility
