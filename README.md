@@ -40,6 +40,6 @@ Preview images in chat bar easily, efficiently.
 
 ## Compatibility
 
-- Java 21
+- Java 17 or higher
 - Tested versions: Spigot/Paper 1.20 ~ 1.21.3(latest)
 
