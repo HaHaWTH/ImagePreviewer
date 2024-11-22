@@ -164,6 +164,7 @@ public class PacketMapDisplay {
                 .type(ItemTypes.FILLED_MAP)
                 .amount(1)
                 .nbt("map_id", new NBTInt(mapId))
+                .nbt("map", new NBTInt(mapId))
                 .component(ComponentTypes.MAP_ID, mapId)
                 .build();
     }
