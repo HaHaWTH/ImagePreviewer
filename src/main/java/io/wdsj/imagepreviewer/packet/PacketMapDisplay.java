@@ -51,13 +51,7 @@ public class PacketMapDisplay {
         this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
         ItemFrameMeta meta = (ItemFrameMeta) entity.getEntityMeta();
         this.mapId = RandomUtil.genRandomMapId();
-        ItemStack stack = ItemStack.builder()
-                .type(ItemTypes.FILLED_MAP)
-                .amount(1)
-                .nbt("map_id", new NBTInt(mapId))
-                .component(ComponentTypes.MAP_ID, mapId)
-                .build();
-        meta.setItem(stack);
+        meta.setItem(makeItemStack());
         meta.setInvisible(ImagePreviewer.config().use_invisible_item_frame);
         meta.setGlowing(ImagePreviewer.config().use_glowing_item_frame);
     }
@@ -74,13 +68,7 @@ public class PacketMapDisplay {
         this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
         ItemFrameMeta meta = (ItemFrameMeta) entity.getEntityMeta();
         this.mapId = RandomUtil.genRandomMapId();
-        ItemStack stack = ItemStack.builder()
-                .type(ItemTypes.FILLED_MAP)
-                .amount(1)
-                .nbt("map_id", new NBTInt(mapId))
-                .component(ComponentTypes.MAP_ID, mapId)
-                .build();
-        meta.setItem(stack);
+        meta.setItem(makeItemStack());
         meta.setInvisible(ImagePreviewer.config().use_invisible_item_frame);
         meta.setGlowing(ImagePreviewer.config().use_glowing_item_frame);
     }
@@ -169,5 +157,14 @@ public class PacketMapDisplay {
 
     public void updateFrame() {
         PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, PacketUtil.makePacket(mapId, imageData.data().get(currentFrame)));
+    }
+
+    private ItemStack makeItemStack() {
+        return ItemStack.builder()
+                .type(ItemTypes.FILLED_MAP)
+                .amount(1)
+                .nbt("map_id", new NBTInt(mapId))
+                .component(ComponentTypes.MAP_ID, mapId)
+                .build();
     }
 }

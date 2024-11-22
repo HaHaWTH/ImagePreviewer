@@ -1,5 +1,8 @@
 package io.wdsj.imagepreviewer.util;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,7 +78,7 @@ public class VirtualThreadUtil {
      *
      * @return a virtual thread factory or the default factory.
      */
-    public static ThreadFactory newVirtualThreadFactoryOrDefault() {
+    public static @NotNull ThreadFactory newVirtualThreadFactoryOrDefault() {
         ThreadFactory factory = invokeOfVirtualFactory();
         return factory != null ? factory : Executors.defaultThreadFactory();
     }
@@ -92,7 +95,7 @@ public class VirtualThreadUtil {
         return executor != null ? executor : executorService;
     }
 
-    private static ExecutorService invokeNewVirtualThreadPerTaskExecutor() {
+    private static @Nullable ExecutorService invokeNewVirtualThreadPerTaskExecutor() {
         try {
             return (ExecutorService) METHOD_VIRTUAL_THREAD_PER_TASK_EXECUTOR.invoke(null);
         } catch (Exception e) {
@@ -100,10 +103,9 @@ public class VirtualThreadUtil {
         }
     }
 
-    private static ThreadFactory invokeOfVirtualFactory() {
+    private static @Nullable ThreadFactory invokeOfVirtualFactory() {
         try {
-            Object builder = METHOD_THREAD_OF_VIRTUAL.invoke(null);
-            return (ThreadFactory) METHOD_VIRTUAL_THREAD_FACTORY.invoke(builder);
+            return (ThreadFactory) METHOD_VIRTUAL_THREAD_FACTORY.invoke(METHOD_THREAD_OF_VIRTUAL.invoke(null));
         } catch (Exception e) {
             return null;
         }

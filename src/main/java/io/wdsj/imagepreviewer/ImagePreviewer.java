@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 public class ImagePreviewer extends JavaPlugin {
     private static ImagePreviewer instance;
-    public static final String PLUGIN_VERSION = "1.2.1";
+    public static final String PLUGIN_VERSION = "1.2.2";
     public static Logger LOGGER;
     private static Config config;
     private MapManager mapManager;
@@ -43,13 +43,17 @@ public class ImagePreviewer extends JavaPlugin {
     }
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         LOGGER = getLogger();
         instance = this;
-        scheduler = UniversalScheduler.getScheduler(this);
         dataFolder = getDataFolder();
-        audiences = BukkitAudiences.create(this);
         reloadConfiguration();
+    }
+
+    @Override
+    public void onEnable() {
+        scheduler = UniversalScheduler.getScheduler(this);
+        audiences = BukkitAudiences.create(this);
         mapManager = new MapManager(this);
         permTool = CachingPermTool.enable(this);
         ImageLoader.init();

@@ -14,6 +14,7 @@ import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.floodgate.api.FloodgateApi;
 import org.geysermc.floodgate.api.player.FloodgatePlayer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FloodgateHook {
@@ -33,14 +34,36 @@ public class FloodgateHook {
     public static class PreviewHistoryForm extends AbstractForm {
         private final SimpleForm.Builder formBuilder;
         private final List<ChatListener.MessageEntry> history;
+        private void makeButton(ChatListener.MessageEntry entry) {
+            formBuilder.button(MessageUtil.translateColors(ImagePreviewer.config().form_history_button
+                    .replace("%time%", entry.time())
+                    .replace("%sender%", entry.sender())
+                    .replace("%url%", entry.message())),
+                    FormImage.Type.URL,
+                    entry.message());
+        }
         public PreviewHistoryForm() {
             this.formBuilder = SimpleForm.builder();
             formBuilder.title(MessageUtil.translateColors(ImagePreviewer.config().form_title));
             formBuilder.content(MessageUtil.translateColors(ImagePreviewer.config().form_history_content));
             this.history = ChatListener.getUrlHistory();
-            history.forEach(entry -> {
-                formBuilder.button(entry.sender() + ": " + entry.message(), FormImage.Type.URL, entry.message());
-            });
+            history.forEach(this::makeButton);
+        }
+
+        public PreviewHistoryForm(int limit) {
+            this.formBuilder = SimpleForm.builder();
+            formBuilder.title(MessageUtil.translateColors(ImagePreviewer.config().form_title));
+            formBuilder.content(MessageUtil.translateColors(ImagePreviewer.config().form_history_content));
+            var tempHistory = new ArrayList<ChatListener.MessageEntry>();
+            int count = 0;
+            for (var entry : ChatListener.getUrlHistory()) {
+                if (count++ >= limit) {
+                    break;
+                }
+                tempHistory.add(entry);
+            }
+            this.history = tempHistory;
+            history.forEach(this::makeButton);
         }
 
         @Override
@@ -69,9 +92,7 @@ public class FloodgateHook {
                 plugin.getMapManager().queuedPlayers.add(uuid);
                 MessageUtil.sendMessage(javaPlayer, config.message_preview_loading);
                 ImageLoader.imageAsData(entry.message())
-                        .thenAccept(imageData -> {
-                            new PacketMapDisplay(plugin, javaPlayer, imageData).spawn();
-                        })
+                        .thenAccept(imageData -> new PacketMapDisplay(plugin, javaPlayer, imageData).spawn())
                         .exceptionally(ex -> {
                             MessageUtil.sendMessage(javaPlayer, config.message_invalid_url);
                             plugin.getMapManager().queuedPlayers.remove(uuid);

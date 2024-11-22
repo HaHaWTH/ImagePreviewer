@@ -26,6 +26,7 @@ public class Config {
     public final int cache_maximum_size;
     public final long cache_expire_time;
     public final boolean preload_images_in_chat;
+    public final int url_history_size;
     public final boolean broadcast_on_match;
     public final Pattern url_match_regex;
     public final boolean use_invisible_item_frame, use_glowing_item_frame;
@@ -33,9 +34,9 @@ public class Config {
     message_no_permission, message_invalid_url, message_command_player_only,
     message_unknown_command, message_already_on_previewing, message_url_matched, message_hover_event
             , message_preview_still_loading, message_help_info, message_args_error, message_cancel_success,
-    message_nothing_to_cancel, message_history_command, message_no_history_to_show;
+    message_nothing_to_cancel, message_history_command, message_history_entry, message_no_history_to_show;
 
-    public final String form_title, form_history_content;
+    public final String form_title, form_history_content, form_history_button;
 
     public final boolean hook_floodgate;
 
@@ -74,6 +75,8 @@ public class Config {
                 "The hover event that will be sent to the player when they hover over the image.");
         this.message_history_command = getString("message.command.history.header", "&eImagePreviewer History &b(Click link to preview)",
                 "The message that will be sent to the player when they enter the history command.");
+        this.message_history_entry = getString("message.command.history.entry", "%time% %sender%: %url%",
+                "The message that will be sent to the player when they enter the history command.");
         this.message_no_history_to_show = getString("message.command.history.no-history", "&cNo history to show.",
                 "The message that will be sent to the player when they enter the history command and there is no history to show.");
         this.message_help_info = getString("message.command.help.help-info", """
@@ -82,7 +85,7 @@ public class Config {
                 &a/imagepreviewer help &7- Show this message
                 &a/imagepreviewer preview <url> [time-ticks] &7- Preview an image from given url
                 &a/imagepreviewer cancel &7- Cancel running preview
-                &a/imagepreviewer history &7- Show previous url history"""
+                &a/imagepreviewer history [size-limit] &7- Show previous url history"""
         );
         this.message_cancel_success = getString("message.command.cancel.cancel-success", "&aCancelled image preview.",
                 "The message that will be sent to the player when they cancel the image preview.");
@@ -91,6 +94,7 @@ public class Config {
 
         this.form_title = getString("message.form.title", "&e&lImage Previewer", "The title of the form.");
         this.form_history_content = getString("message.form.history-form.content", "Previous image urls in chat", "The content of the history form.");
+        this.form_history_button = getString("message.form.history-form.button", "%time% %sender%: %url%", "The button text of the history form.");
 
         this.preview_mode = getInt("plugin.preview-mode", 2,
                 """
@@ -109,7 +113,7 @@ public class Config {
                 "Whether to cache converted image data.");
         this.cache_maximum_size = getInt("plugin.image-cache.cache-maximum-size", 100,
                 "The maximum size of the cache.");
-        this.preload_images_in_chat = getBoolean("plugin.image-cache.preload-images-in-chat", false,
+        this.preload_images_in_chat = getBoolean("plugin.image-cache.preload-images-in-chat", true,
                 "If set to true, will preload images sent in chat.");
         this.cache_expire_time = getLong("plugin.image-cache.cache-expire-time", 5,
                 "The time in minutes that the cache will expire.");
@@ -119,10 +123,12 @@ public class Config {
                 "The delay between each frame in milliseconds.");
         this.gif_adaptive_frame_delay = getBoolean("plugin.gif.gif-adaptive-frame-delay", true,
                 "If set to true, will use adaptive frame delay.");
-        this.url_match_regex = Pattern.compile(getString("plugin.url-match-regex", "https?://[^\\s]+?\\.(?:png|bmp|jpg|jpeg|gif|webp)\\b",
+        this.url_match_regex = Pattern.compile(getString("plugin.url-match-regex", "(https?://.*?\\.(?:png|bmp|jpg|jpeg|gif|webp))",
                 "The regex that will be used to match the URL."));
+        this.url_history_size = getInt("plugin.history.url-history-size", 10,
+                "Maximum url history size.");
         this.broadcast_on_match = getBoolean("plugin.broadcast-on-match", false,
-                "If set to true, will broadcast the matched URL component to all players.");
+                "Whether to broadcast message on url matched");
         this.use_invisible_item_frame = getBoolean("plugin.use-invisible-item-frame", false,
                 "If set to true, will use invisible item frame to display image.");
         this.use_glowing_item_frame = getBoolean("plugin.use-glowing-item-frame", false,
