@@ -2,6 +2,7 @@ package io.wdsj.imagepreviewer;
 
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
+import io.wdsj.imagepreviewer.api.ImagePreviewerAPI;
 import io.wdsj.imagepreviewer.command.ConstructCommandExecutor;
 import io.wdsj.imagepreviewer.command.ConstructTabCompleter;
 import io.wdsj.imagepreviewer.config.Config;
@@ -60,6 +61,7 @@ public class ImagePreviewer extends JavaPlugin {
         Objects.requireNonNull(getCommand("imagepreviewer")).setExecutor(new ConstructCommandExecutor());
         Objects.requireNonNull(getCommand("imagepreviewer")).setTabCompleter(new ConstructTabCompleter());
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
+        ImagePreviewerAPI.init(this);
         Metrics metrics = new Metrics(this, 23927);
         LOGGER.info("ImagePreviewer is enabled!");
         if (config().check_for_update) {
