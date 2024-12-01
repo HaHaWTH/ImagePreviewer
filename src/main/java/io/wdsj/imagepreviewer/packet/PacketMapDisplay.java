@@ -23,6 +23,7 @@ import org.bukkit.util.Vector;
 
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PacketMapDisplay {
     private static final long TICK_TO_MILLISECONDS = 50L;
@@ -37,7 +38,7 @@ public class PacketMapDisplay {
     private ScheduledFuture<?> tickLifecycleTask;
     private ScheduledFuture<?> locationUpdateTask;
     private final long lifecycleTicks;
-    private long ticksSurvived;
+    private final AtomicLong ticksSurvived;
 
     public PacketMapDisplay(ImagePreviewer plugin, Player owner, ImageData imageData) {
         this.plugin = plugin;
@@ -46,7 +47,7 @@ public class PacketMapDisplay {
         this.isAnimated = imageData.animated();
         this.lifecycleTicks = Config.isReloading ? 100L : ImagePreviewer.config().image_preview_lifetime;
         this.currentFrame = 0;
-        this.ticksSurvived = 0;
+        this.ticksSurvived = new AtomicLong(0L);
         final int entityId = plugin.getMapManager().getEntityId();
         this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
         ItemFrameMeta meta = (ItemFrameMeta) entity.getEntityMeta();
@@ -63,7 +64,7 @@ public class PacketMapDisplay {
         this.isAnimated = imageData.animated();
         this.lifecycleTicks = lifecycleTicks;
         this.currentFrame = 0;
-        this.ticksSurvived = 0;
+        this.ticksSurvived = new AtomicLong(0L);
         final int entityId = plugin.getMapManager().getEntityId();
         this.entity = new WrapperEntity(entityId, UUID.randomUUID(), EntityTypes.ITEM_FRAME);
         ItemFrameMeta meta = (ItemFrameMeta) entity.getEntityMeta();
@@ -88,10 +89,10 @@ public class PacketMapDisplay {
         plugin.getMapManager().track(owner, this);
         if (isAnimated) startAnimation();
         tickLifecycleTask = plugin.getMapManager().scheduleTaskAtFixedRate(() -> {
-            if (ticksSurvived >= lifecycleTicks) {
+            if (ticksSurvived.get() >= lifecycleTicks) {
                 this.despawn();
             } else {
-                ticksSurvived += 1;
+                ticksSurvived.incrementAndGet();
             }
         }, TICK_TO_MILLISECONDS, TICK_TO_MILLISECONDS);
         final long locationUpdateInterval = Config.isReloading ? 50L : ImagePreviewer.config().location_update_interval;
@@ -106,6 +107,10 @@ public class PacketMapDisplay {
         return owner;
     }
 
+    public long getLifetimeLeft() {
+        return lifecycleTicks - ticksSurvived.get();
+    }
+
     public void despawn() {
         if (tickLifecycleTask != null) {
             tickLifecycleTask.cancel(false);
@@ -117,7 +122,7 @@ public class PacketMapDisplay {
         }
         entity.despawn();
         plugin.getMapManager().untrack(owner);
-        ticksSurvived = 0;
+        ticksSurvived.set(0L);
         stopAnimation();
     }
 
