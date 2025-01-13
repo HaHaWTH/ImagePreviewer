@@ -172,13 +172,13 @@
         <dependency>
             <groupId>me.tofaa.entitylib</groupId>
             <artifactId>spigot</artifactId>
-            <version>3.0.3-SNAPSHOT</version>
+            <version>+39cce79-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents-spigot</artifactId>
-            <version>2.6.1-SNAPSHOT</version>
+            <version>2.7.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
