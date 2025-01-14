@@ -78,12 +78,14 @@ public class PacketMapDisplay {
         plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
         WrapperPlayServerMapData mapData = PacketUtil.makePacket(mapId, imageData.data().getFirst());
         entity.addViewer(owner.getUniqueId());
+        entity.setTicking(true);
         Location ownerEyeLocation = owner.getEyeLocation().clone();
         Vector direction = ownerEyeLocation.getDirection();
         Location entityLoc = ownerEyeLocation.add(direction.multiply(ImagePreviewer.config().image_distance_to_player));
         float[] alignment = LocationUtil.calculateYawPitch(entityLoc, ownerEyeLocation);
         entityLoc.setYaw(alignment[0]);
         entityLoc.setPitch(alignment[1]);
+        entity.setLocation(SpigotConversionUtil.fromBukkitLocation(entityLoc));
         entity.spawn(SpigotConversionUtil.fromBukkitLocation(entityLoc));
         PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, mapData);
         plugin.getMapManager().track(owner, this);
