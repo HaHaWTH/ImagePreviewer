@@ -91,16 +91,20 @@ public class MapManager implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        var uuid = player.getUniqueId();
+        queuedPlayers.remove(uuid);
         if (hasRunningPreview(player)) {
-            displays.remove(player.getUniqueId()).despawn();
+            displays.remove(uuid).despawn();
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onKick(PlayerKickEvent event) {
         Player player = event.getPlayer();
+        var uuid = player.getUniqueId();
+        queuedPlayers.remove(uuid);
         if (hasRunningPreview(player)) {
-            displays.remove(player.getUniqueId()).despawn();
+            displays.remove(uuid).despawn();
         }
     }
 }
