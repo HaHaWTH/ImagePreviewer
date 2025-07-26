@@ -121,7 +121,7 @@ public class ImagePreviewer extends JavaPlugin {
             config = new Config(this, dataFolder);
             config.saveConfig();
         } catch (Throwable t) {
-            LOGGER.severe("Failed while loading config!");
+            LOGGER.severe("Failed to load config!");
         } finally {
             Config.isReloading = false;
         }

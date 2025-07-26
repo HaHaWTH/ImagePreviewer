@@ -76,7 +76,7 @@ public class PacketMapDisplay {
 
     public void spawn() {
         plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
-        WrapperPlayServerMapData mapData = PacketUtil.makePacket(mapId, imageData.data().getFirst());
+        WrapperPlayServerMapData mapData = PacketUtil.makePacket(mapId, imageData.frameData().getFirst());
         entity.addViewer(owner.getUniqueId());
         entity.setTicking(true);
         Location ownerEyeLocation = owner.getEyeLocation().clone();
@@ -147,7 +147,7 @@ public class PacketMapDisplay {
         updateFrameTask = plugin.getMapManager().scheduleTaskAtFixedRate(() -> {
             int currentFrame = this.getCurrentFrame();
             int nextFrame = currentFrame + 1;
-            if (nextFrame >= imageData.data().size()) {
+            if (nextFrame >= imageData.frameData().size()) {
                 nextFrame = 0;
             }
             this.setCurrentFrame(nextFrame);
@@ -163,7 +163,7 @@ public class PacketMapDisplay {
     }
 
     public void updateFrame() {
-        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, PacketUtil.makePacket(mapId, imageData.data().get(currentFrame)));
+        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, PacketUtil.makePacket(mapId, imageData.frameData().get(currentFrame)));
     }
 
     private ItemStack makeItemStack() {

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("unused")
 public class ImagePreviewerAPI {
     private final ImagePreviewer plugin;
     private static ImagePreviewerAPI api;

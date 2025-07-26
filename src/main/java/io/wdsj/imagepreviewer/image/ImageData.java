@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public record ImageData(List<byte[]> data, boolean animated, Optional<Integer> frameDelay) {
+public record ImageData(List<byte[]> frameData, boolean animated, Optional<Integer> frameDelay) {
     public @Nullable Integer parseFrameDelay() {
         if (frameDelay.isPresent()) {
             int delay = frameDelay.get();
