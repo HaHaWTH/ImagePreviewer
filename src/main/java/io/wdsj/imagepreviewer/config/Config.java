@@ -27,7 +27,7 @@ public class Config {
     public final boolean broadcast_on_match;
     public final Pattern url_match_regex;
     public final String message_reload_success, message_preview_loading,
-    message_no_permission, message_invalid_url, message_command_player_only,
+    message_no_permission, message_failed_to_load, message_command_player_only,
     message_unknown_command, message_already_on_previewing, message_url_matched, message_hover_event
             , message_preview_still_loading, message_help_info, message_args_error, message_cancel_success,
     message_nothing_to_cancel, message_history_command, message_history_entry, message_no_history_to_show, message_not_empty_hand;
@@ -53,8 +53,8 @@ public class Config {
                 "The message that will be sent to the player when the image preview is loading.");
         this.message_no_permission = getString("message.no-permission", "&cYou do not have permission to do that.",
                 "The message that will be sent to the player when they do not have permission to do something.");
-        this.message_invalid_url = getString("message.invalid-url", "&cInvalid URL!",
-                "The message that will be sent to the player when they enter an invalid URL.");
+        this.message_failed_to_load = getString("message.failed-to-load", "&cFailed to load image, reason: %reason%",
+                "The message that will be sent to the player when ImagePreviewer failed to load an image.");
         this.message_command_player_only = getString("message.command-player-only", "&cThis command can only be used by players.",
                 "The message that will be sent when try to use a command that can only be used by players.");
         this.message_unknown_command = getString("message.unknown-command", "&cUnknown command. Type /preview help for help.",
@@ -109,7 +109,7 @@ public class Config {
                 "The delay between each frame in milliseconds.");
         this.gif_adaptive_frame_delay = getBoolean("plugin.gif.gif-adaptive-frame-delay", true,
                 "If set to true, will use adaptive frame delay.");
-        this.url_match_regex = Pattern.compile(getString("plugin.url-match-regex", "(https?://.*?\\.(?:png|bmp|jpg|jpeg|gif|webp))",
+        this.url_match_regex = Pattern.compile(getString("plugin.url-match-regex", "https?://((?!https?://).)*\\.(?:png|bmp|jpg|jpeg|gif|webp)",
                 "The regex that will be used to match the URL."));
         this.url_history_size = getInt("plugin.history.url-history-size", 10,
                 "Maximum url history size.");

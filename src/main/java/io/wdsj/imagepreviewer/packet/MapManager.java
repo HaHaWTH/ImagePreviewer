@@ -89,7 +89,7 @@ public class MapManager implements Listener {
         var uuid = player.getUniqueId();
         queuedPlayers.remove(uuid);
         if (hasRunningPreview(player)) {
-            displays.remove(uuid);
+            displays.remove(uuid).cancelTasks();
         }
     }
 
@@ -99,7 +99,7 @@ public class MapManager implements Listener {
         var uuid = player.getUniqueId();
         queuedPlayers.remove(uuid);
         if (hasRunningPreview(player)) {
-            displays.remove(uuid);
+            displays.remove(uuid).cancelTasks();
         }
     }
 }

@@ -67,6 +67,11 @@ public class PacketMapDisplay {
      */
     public boolean spawn() {
         plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
+        try {
+            // noinspection UnstableApiUsage
+            owner.updateInventory();
+        } catch (Throwable ignored) {
+        }
         PlayerInventory inventory = owner.getInventory();
         if (inventory.getItemInMainHand().getType() != Material.AIR) {
             return false;
@@ -97,12 +102,7 @@ public class PacketMapDisplay {
     }
 
     public void despawn() {
-        if (tickLifecycleTask != null) {
-            tickLifecycleTask.cancel(false);
-            tickLifecycleTask = null;
-        }
-        stopAnimation();
-
+        cancelTasks();
         WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
                 PLAYER_INVENTORY_WINDOW_ID,
                 0,
@@ -113,6 +113,19 @@ public class PacketMapDisplay {
 
         plugin.getMapManager().untrack(owner);
         ticksSurvived.set(0L);
+        try {
+            // noinspection UnstableApiUsage
+            owner.updateInventory();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public void cancelTasks() {
+        if (tickLifecycleTask != null) {
+            tickLifecycleTask.cancel(false);
+            tickLifecycleTask = null;
+        }
+        stopAnimation();
     }
 
     /**

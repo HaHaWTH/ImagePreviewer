@@ -62,7 +62,7 @@ public class ImageLoader {
                     var pairs = readAllFramesGif(url);
                     BufferedImage[] originalImages = pairs.left();
                     if (originalImages.length == 0) {
-                        throw new IllegalArgumentException("The provided URL is not a valid image: " + urlString);
+                        throw new IllegalArgumentException("The provided URL is not a valid image");
                     }
                     List<BufferedImage> resizedImagesList = new ArrayList<>();
                     for (BufferedImage originalImage : originalImages) {
@@ -89,7 +89,7 @@ public class ImageLoader {
                     return data;
                 }
             } catch (IOException | URISyntaxException e) {
-                throw new RuntimeException("Failed to download or process the image from URL: " + urlString, e);
+                throw new RuntimeException("Failed to download or process the image from URL", e);
             }
         }, executor);
     }

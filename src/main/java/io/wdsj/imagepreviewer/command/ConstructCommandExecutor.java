@@ -151,7 +151,7 @@ public class ConstructCommandExecutor implements CommandExecutor {
                                 }
                             })
                             .exceptionally(ex -> {
-                                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_invalid_url);
+                                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_failed_to_load.replace("%reason%", ex.getMessage()));
                                 ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
                                 return null;
                             });

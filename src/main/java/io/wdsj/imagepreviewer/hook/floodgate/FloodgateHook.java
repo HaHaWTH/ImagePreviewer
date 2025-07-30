@@ -92,9 +92,13 @@ public class FloodgateHook {
                 plugin.getMapManager().queuedPlayers.add(uuid);
                 MessageUtil.sendMessage(javaPlayer, config.message_preview_loading);
                 ImageLoader.imageAsData(entry.message())
-                        .thenAccept(imageData -> new PacketMapDisplay(plugin, javaPlayer, imageData).spawn())
+                        .thenAccept(imageData -> {
+                            if (!new PacketMapDisplay(plugin, javaPlayer, imageData).spawn()) {
+                                MessageUtil.sendMessage(javaPlayer, config.message_not_empty_hand);
+                            }
+                        })
                         .exceptionally(ex -> {
-                            MessageUtil.sendMessage(javaPlayer, config.message_invalid_url);
+                            MessageUtil.sendMessage(javaPlayer, config.message_failed_to_load.replace("%reason%", ex.getMessage()));
                             plugin.getMapManager().queuedPlayers.remove(uuid);
                             return null;
                         });
