@@ -73,7 +73,7 @@ public class PacketMapDisplay {
         } catch (Throwable ignored) {
         }
         PlayerInventory inventory = owner.getInventory();
-        if (inventory.getItemInMainHand().getType() != Material.AIR) {
+        if (!ImagePreviewer.config().allow_nonempty_hand && inventory.getItemInMainHand().getType() != Material.AIR) {
             return false;
         }
 
@@ -103,20 +103,19 @@ public class PacketMapDisplay {
 
     public void despawn() {
         cancelTasks();
-        WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
-                PLAYER_INVENTORY_WINDOW_ID,
-                0,
-                originalHeldSlot,
-                originalItem
-        );
-        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, setSlotPacket);
-
         plugin.getMapManager().untrack(owner);
         ticksSurvived.set(0L);
         try {
             // noinspection UnstableApiUsage
             owner.updateInventory();
         } catch (Throwable ignored) {
+            WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
+                    PLAYER_INVENTORY_WINDOW_ID,
+                    0,
+                    originalHeldSlot,
+                    originalItem
+            );
+            PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, setSlotPacket);
         }
     }
 

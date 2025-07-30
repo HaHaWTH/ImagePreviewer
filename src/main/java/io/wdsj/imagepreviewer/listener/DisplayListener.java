@@ -55,6 +55,7 @@ public class DisplayListener implements Listener {
         PacketMapDisplay display = mapManager.getDisplay(player);
 
         if (display != null && event.getSlot() == display.getOriginalHeldSlot()) {
+            event.setCancelled(true);
             display.despawn();
         }
     }
