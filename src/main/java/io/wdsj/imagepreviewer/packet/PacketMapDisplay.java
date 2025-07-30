@@ -127,7 +127,7 @@ public class PacketMapDisplay {
     private void startAnimation() {
         long delay;
         var dataDelay = imageData.parseFrameDelay();
-        if (dataDelay != null && !Config.isReloading && ImagePreviewer.config().gif_adaptive_frame_delay) {
+        if (dataDelay != -1 && !Config.isReloading && ImagePreviewer.config().gif_adaptive_frame_delay) {
             delay = dataDelay;
         } else {
             delay = Config.isReloading ? 100L : ImagePreviewer.config().gif_frame_delay;
