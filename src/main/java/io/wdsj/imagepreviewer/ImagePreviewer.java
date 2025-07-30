@@ -10,6 +10,7 @@ import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.listener.ChatListener;
 import io.wdsj.imagepreviewer.listener.DisplayListener;
+import io.wdsj.imagepreviewer.listener.PaperDisplayListener;
 import io.wdsj.imagepreviewer.packet.MapManager;
 import io.wdsj.imagepreviewer.permission.CachingPermTool;
 import io.wdsj.imagepreviewer.update.Updater;
@@ -72,6 +73,9 @@ public class ImagePreviewer extends JavaPlugin {
         ImagePreviewerAPI.init(this);
         Metrics metrics = new Metrics(this, 23927);
         Bukkit.getPluginManager().registerEvents(new DisplayListener(this), this);
+        if (isPaper) {
+            Bukkit.getPluginManager().registerEvents(new PaperDisplayListener(this), this);
+        }
         LOGGER.info("ImagePreviewer is enabled.");
         if (config().check_for_update) {
             getScheduler().runTaskAsynchronously(() -> {

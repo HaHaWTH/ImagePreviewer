@@ -7,8 +7,10 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMapData;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
+import io.wdsj.imagepreviewer.hook.floodgate.FloodgateHook;
 import io.wdsj.imagepreviewer.image.ImageData;
 import io.wdsj.imagepreviewer.util.PacketUtil;
 import io.wdsj.imagepreviewer.util.RandomUtil;
@@ -38,6 +40,7 @@ public class PacketMapDisplay {
 
     private int originalHeldSlot;
     private int currentFrame;
+    private ItemStack originalItem;
 
     private ScheduledFuture<?> updateFrameTask;
     private ScheduledFuture<?> tickLifecycleTask;
@@ -66,7 +69,6 @@ public class PacketMapDisplay {
     public boolean spawn() {
         plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
         try {
-            // noinspection UnstableApiUsage
             owner.updateInventory();
         } catch (Throwable ignored) {
         }
@@ -77,8 +79,8 @@ public class PacketMapDisplay {
             if (useOffhand && inventory.getItemInOffHand().getType() != Material.AIR) return false;
         }
 
-        this.originalHeldSlot = useOffhand ? 40 : inventory.getHeldItemSlot();
-        //this.originalItem = SpigotConversionUtil.fromBukkitItemStack(inventory.getItemInMainHand());
+        this.originalHeldSlot = useOffhand && (!FloodgateHook.isFloodgatePresent() || !FloodgateHook.isFloodgatePlayer(owner)) ? 40 : inventory.getHeldItemSlot();
+        this.originalItem = SpigotConversionUtil.fromBukkitItemStack(inventory.getItemInMainHand());
 
         ItemStack mapItemStack = makeMapItemStack();
         WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
@@ -106,7 +108,6 @@ public class PacketMapDisplay {
         plugin.getMapManager().untrack(owner);
         ticksSurvived.set(0L);
         try {
-            // noinspection UnstableApiUsage
             owner.updateInventory();
         } catch (Throwable ignored) {
         }

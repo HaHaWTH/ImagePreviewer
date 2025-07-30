@@ -1,12 +1,8 @@
 package io.wdsj.imagepreviewer.packet;
 
-import com.github.retrooper.packetevents.PacketEvents;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.util.VirtualThreadUtil;
-import me.tofaa.entitylib.APIConfig;
-import me.tofaa.entitylib.EntityLib;
-import me.tofaa.entitylib.spigot.SpigotEntityLibPlatform;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,10 +36,10 @@ public class MapManager implements Listener {
     }
 
     private void initialize() {
-        final SpigotEntityLibPlatform platform = new SpigotEntityLibPlatform(plugin);
-        final APIConfig settings = new APIConfig(PacketEvents.getAPI())
-                .usePlatformLogger();
-        EntityLib.init(platform, settings);
+//        final SpigotEntityLibPlatform platform = new SpigotEntityLibPlatform(plugin);
+//        final APIConfig settings = new APIConfig(PacketEvents.getAPI())
+//                .usePlatformLogger();
+//        EntityLib.init(platform, settings);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
