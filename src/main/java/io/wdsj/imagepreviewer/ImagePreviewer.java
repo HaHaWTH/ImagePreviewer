@@ -8,12 +8,14 @@ import io.wdsj.imagepreviewer.command.ConstructTabCompleter;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.listener.ChatListener;
+import io.wdsj.imagepreviewer.listener.DisplayListener;
 import io.wdsj.imagepreviewer.packet.MapManager;
 import io.wdsj.imagepreviewer.permission.CachingPermTool;
 import io.wdsj.imagepreviewer.update.Updater;
 import io.wdsj.imagepreviewer.util.Util;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -63,7 +65,8 @@ public class ImagePreviewer extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
         ImagePreviewerAPI.init(this);
         Metrics metrics = new Metrics(this, 23927);
-        LOGGER.info("ImagePreviewer is enabled!");
+        Bukkit.getPluginManager().registerEvents(new DisplayListener(this), this);
+        LOGGER.info("ImagePreviewer is enabled.");
         if (config().check_for_update) {
             getScheduler().runTaskAsynchronously(() -> {
                 LOGGER.info("Checking for update...");

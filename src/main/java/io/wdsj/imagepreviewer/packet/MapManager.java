@@ -2,7 +2,6 @@ package io.wdsj.imagepreviewer.packet;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.util.VirtualThreadUtil;
 import me.tofaa.entitylib.APIConfig;
@@ -84,17 +83,13 @@ public class MapManager implements Listener {
         HandlerList.unregisterAll(this);
     }
 
-    public synchronized int getEntityId() {
-        return SpigotReflectionUtil.generateEntityId();
-    }
-
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         var uuid = player.getUniqueId();
         queuedPlayers.remove(uuid);
         if (hasRunningPreview(player)) {
-            displays.remove(uuid).despawn();
+            displays.remove(uuid);
         }
     }
 
@@ -104,7 +99,7 @@ public class MapManager implements Listener {
         var uuid = player.getUniqueId();
         queuedPlayers.remove(uuid);
         if (hasRunningPreview(player)) {
-            displays.remove(uuid).despawn();
+            displays.remove(uuid);
         }
     }
 }

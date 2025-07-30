@@ -15,9 +15,6 @@ public class Config {
     private final ImagePreviewer plugin;
     public static boolean isReloading = false;
     public final boolean check_for_update;
-    public final int preview_mode;
-    public final double image_distance_to_player;
-    public final long location_update_interval;
     public final long image_preview_lifetime;
     public final boolean process_multi_frame_gif;
     public final long gif_frame_delay;
@@ -34,7 +31,7 @@ public class Config {
     message_no_permission, message_invalid_url, message_command_player_only,
     message_unknown_command, message_already_on_previewing, message_url_matched, message_hover_event
             , message_preview_still_loading, message_help_info, message_args_error, message_cancel_success,
-    message_nothing_to_cancel, message_history_command, message_history_entry, message_no_history_to_show;
+    message_nothing_to_cancel, message_history_command, message_history_entry, message_no_history_to_show, message_not_empty_hand;
 
     public final String form_title, form_history_content, form_history_button;
 
@@ -69,6 +66,8 @@ public class Config {
                 "The message that will be sent to the player when they are already on previewing.");
         this.message_preview_still_loading = getString("message.preview-still-loading", "&cPreview is still loading...",
                 "The message that will be sent to the player when the image preview is still loading.");
+        this.message_not_empty_hand = getString("message.not-empty-hand", "&cYou cannot preview an image while holding an item.",
+                "The message that will be sent to the player when they are holding an item in their hand.");
         this.message_url_matched = getString("message.url-matched", "%player% just sent an image url!",
                 "The message that will be sent to the player when the URL is matched.");
         this.message_hover_event = getString("message.hover-event", "Click to preview image",
@@ -95,18 +94,6 @@ public class Config {
         this.form_title = getString("message.form.title", "&e&lImage Previewer", "The title of the form.");
         this.form_history_content = getString("message.form.history-form.content", "Previous image urls in chat", "The content of the history form.");
         this.form_history_button = getString("message.form.history-form.button", "%time% %sender%: %url%", "The button text of the history form.");
-
-        this.preview_mode = getInt("plugin.preview-mode", 2,
-                """
-                        Preview modes:
-                        1. Image will move with player, like ray tracing.
-                        2. Image will stay in-place, but will rotate towards player.
-                        3. Image will stay in-place.
-                        4. Image will stay in-place, but will rotate towards player. (Only yaw)""");
-        this.location_update_interval = getLong("plugin.location-update-interval", 50,
-                "How often the image preview will update its location in milliseconds.");
-        this.image_distance_to_player = getDouble("plugin.image-distance-to-player", 1.0,
-                "The distance between the player and the image.");
         this.image_preview_lifetime = getInt("plugin.image-preview-lifetime", 180,
                 "How long can one image preview survive in ticks.");
         this.enable_image_cache = getBoolean("plugin.image-cache.enabled", true,

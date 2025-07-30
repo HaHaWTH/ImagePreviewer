@@ -2,7 +2,6 @@ package io.wdsj.imagepreviewer.api;
 
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.image.ImageData;
-import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.packet.PacketMapDisplay;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -38,30 +37,14 @@ public class ImagePreviewerAPI {
         return plugin.getMapManager().hasRunningPreview(player);
     }
 
-    public void spawnPreviewFromUrl(Player player, String url) {
-        if (plugin.getMapManager().hasRunningPreview(player) || plugin.getMapManager().queuedPlayers.contains(player.getUniqueId())) return;
-        ImageLoader.imageAsData(url)
-                .thenAccept(imageData -> new PacketMapDisplay(plugin, player, imageData).spawn())
-                .exceptionally(ex -> null);
-    }
-
-    public void spawnPreviewFromUrl(Player player, String url, long lifecycleTicks) {
-        if (plugin.getMapManager().hasRunningPreview(player) || plugin.getMapManager().queuedPlayers.contains(player.getUniqueId())) return;
-        ImageLoader.imageAsData(url)
-                .thenAccept(imageData -> new PacketMapDisplay(plugin, player, imageData, lifecycleTicks).spawn())
-                .exceptionally(ex -> null);
-    }
-
     public boolean spawnPreview(Player player, ImageData imageData) {
         if (plugin.getMapManager().hasRunningPreview(player) || plugin.getMapManager().queuedPlayers.contains(player.getUniqueId())) return false;
-        new PacketMapDisplay(plugin, player, imageData).spawn();
-        return true;
+        return new PacketMapDisplay(plugin, player, imageData).spawn();
     }
 
     public boolean spawnPreview(Player player, ImageData imageData, long lifecycleTicks) {
         if (plugin.getMapManager().hasRunningPreview(player) || plugin.getMapManager().queuedPlayers.contains(player.getUniqueId())) return false;
-        new PacketMapDisplay(plugin, player, imageData, lifecycleTicks).spawn();
-        return true;
+        return new PacketMapDisplay(plugin, player, imageData, lifecycleTicks).spawn();
     }
 
     public boolean despawnPreview(Player player) {
