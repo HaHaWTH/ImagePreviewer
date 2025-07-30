@@ -10,6 +10,8 @@ depend:
   - packetevents
 softdepend:
   - floodgate
+libraries:
+  - com.twelvemonkeys.imageio:imageio-webp:3.12.0
 permissions:
   imagepreviewer.*:
     default: false

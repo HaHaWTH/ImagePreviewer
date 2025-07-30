@@ -2,6 +2,7 @@ package io.wdsj.imagepreviewer;
 
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
+import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import io.wdsj.imagepreviewer.api.ImagePreviewerAPI;
 import io.wdsj.imagepreviewer.command.ConstructCommandExecutor;
 import io.wdsj.imagepreviewer.command.ConstructTabCompleter;
@@ -19,6 +20,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
@@ -55,6 +58,9 @@ public class ImagePreviewer extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        IIORegistry registry = IIORegistry.getDefaultInstance();
+        registry.registerServiceProvider(new WebPImageReaderSpi());
+        ImageIO.scanForPlugins();
         scheduler = UniversalScheduler.getScheduler(this);
         audiences = BukkitAudiences.create(this);
         mapManager = new MapManager(this);
