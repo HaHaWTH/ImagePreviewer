@@ -26,7 +26,6 @@ public class Config {
     public final int url_history_size;
     public final boolean broadcast_on_match;
     public final Pattern url_match_regex;
-    public final boolean use_invisible_item_frame, use_glowing_item_frame;
     public final String message_reload_success, message_preview_loading,
     message_no_permission, message_invalid_url, message_command_player_only,
     message_unknown_command, message_already_on_previewing, message_url_matched, message_hover_event
@@ -116,10 +115,6 @@ public class Config {
                 "Maximum url history size.");
         this.broadcast_on_match = getBoolean("plugin.broadcast-on-match", false,
                 "Whether to broadcast message on url matched");
-        this.use_invisible_item_frame = getBoolean("plugin.use-invisible-item-frame", false,
-                "If set to true, will use invisible item frame to display image.");
-        this.use_glowing_item_frame = getBoolean("plugin.use-glowing-item-frame", false,
-                "If set to true, will use glowing item frame to display image.");
 
         this.hook_floodgate = getBoolean("hook.floodgate", true);
     }
