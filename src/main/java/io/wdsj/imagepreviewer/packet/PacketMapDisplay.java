@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMapData;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageData;
@@ -38,7 +37,6 @@ public class PacketMapDisplay {
     private final AtomicLong ticksSurvived;
 
     private int originalHeldSlot;
-    private ItemStack originalItem;
     private int currentFrame;
 
     private ScheduledFuture<?> updateFrameTask;
@@ -73,18 +71,20 @@ public class PacketMapDisplay {
         } catch (Throwable ignored) {
         }
         PlayerInventory inventory = owner.getInventory();
-        if (!ImagePreviewer.config().allow_nonempty_hand && inventory.getItemInMainHand().getType() != Material.AIR) {
-            return false;
+        boolean useOffhand = ImagePreviewer.config().use_offhand;
+        if (!ImagePreviewer.config().allow_nonempty_hand) {
+            if (!useOffhand && inventory.getItemInMainHand().getType() != Material.AIR) return false;
+            if (useOffhand && inventory.getItemInOffHand().getType() != Material.AIR) return false;
         }
 
-        this.originalHeldSlot = inventory.getHeldItemSlot();
-        this.originalItem = SpigotConversionUtil.fromBukkitItemStack(inventory.getItemInMainHand());
+        this.originalHeldSlot = useOffhand ? 40 : inventory.getHeldItemSlot();
+        //this.originalItem = SpigotConversionUtil.fromBukkitItemStack(inventory.getItemInMainHand());
 
         ItemStack mapItemStack = makeMapItemStack();
         WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
                 PLAYER_INVENTORY_WINDOW_ID,
                 0,
-                inventory.getHeldItemSlot(),
+                originalHeldSlot,
                 mapItemStack
         );
         WrapperPlayServerMapData mapDataPacket = PacketUtil.makePacket(mapId, imageData.frameData().getFirst());
@@ -109,13 +109,6 @@ public class PacketMapDisplay {
             // noinspection UnstableApiUsage
             owner.updateInventory();
         } catch (Throwable ignored) {
-            WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
-                    PLAYER_INVENTORY_WINDOW_ID,
-                    0,
-                    originalHeldSlot,
-                    originalItem
-            );
-            PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, setSlotPacket);
         }
     }
 
