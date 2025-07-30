@@ -66,12 +66,11 @@ public class PacketMapDisplay {
      * @return true if the display was spawned, false otherwise.
      */
     public boolean spawn() {
+        plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
         PlayerInventory inventory = owner.getInventory();
         if (inventory.getItemInMainHand().getType() != Material.AIR) {
             return false;
         }
-
-        plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
 
         this.originalHeldSlot = inventory.getHeldItemSlot();
         this.originalItem = SpigotConversionUtil.fromBukkitItemStack(inventory.getItemInMainHand());

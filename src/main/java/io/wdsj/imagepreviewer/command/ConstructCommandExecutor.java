@@ -130,7 +130,6 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     ImagePreviewer.getInstance().getMapManager().queuedPlayers.add(player.getUniqueId());
                     ImageLoader.imageAsData(args[1].trim())
                             .thenAccept(imageData -> {
-                                boolean ret;
                                 if (args.length > 2) {
                                     ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
                                     if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW_TIME, player)) {
@@ -142,12 +141,13 @@ public class ConstructCommandExecutor implements CommandExecutor {
                                         MessageUtil.sendMessage(sender, ImagePreviewer.config().message_args_error);
                                         return;
                                     }
-                                    ret = new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData, lifecycleTicks).spawn();
+                                    if (!new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData, lifecycleTicks).spawn()) {
+                                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_not_empty_hand);
+                                    }
                                 } else {
-                                    ret = new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn();
-                                }
-                                if (!ret) {
-                                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_not_empty_hand);
+                                    if (!new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn()) {
+                                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_not_empty_hand);
+                                    }
                                 }
                             })
                             .exceptionally(ex -> {
