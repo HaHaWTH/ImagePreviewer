@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 public class DisplayListener implements Listener {
 
@@ -58,5 +59,14 @@ public class DisplayListener implements Listener {
             event.setCancelled(true);
             display.despawn();
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onSwapItem(PlayerSwapHandItemsEvent event) {
+        var player = event.getPlayer();
+        PacketMapDisplay display = mapManager.getDisplay(player);
+        if (display == null) return;
+        event.setCancelled(true);
+        display.despawn();
     }
 }
