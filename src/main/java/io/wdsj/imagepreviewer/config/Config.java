@@ -23,6 +23,7 @@ public class Config {
     public final int cache_maximum_size;
     public final long cache_expire_time;
     public final boolean preload_images_in_chat;
+    public final long image_max_size_kb;
     public final int url_history_size;
     public final boolean broadcast_on_match;
     public final Pattern url_match_regex;
@@ -119,8 +120,10 @@ public class Config {
                 "Whether to broadcast message on url matched");
         this.allow_nonempty_hand = getBoolean("plugin.allow-nonempty-hand", true,
                 "Whether to allow nonempty hand when previewing image.");
-        this.use_offhand = getBoolean("plugin.use-offhand", true,
+        this.use_offhand = getBoolean("plugin.use-offhand", false,
                 "Whether to use offhand when previewing image.");
+        this.image_max_size_kb = getLong("plugin.image-max-size-kb", 5120,
+                "The maximum size of an image in kilobytes, -1 to disable limit.");
 
         this.hook_floodgate = getBoolean("hook.floodgate", true);
     }

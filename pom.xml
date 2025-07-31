@@ -75,6 +75,7 @@
                                     <artifact>*:*</artifact>
                                     <excludes>
                                         <exclude>META-INF/maven/**</exclude>
+                                        <exclude>org/jspecify/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>

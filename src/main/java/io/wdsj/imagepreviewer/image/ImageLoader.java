@@ -3,8 +3,8 @@ package io.wdsj.imagepreviewer.image;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
+import io.wdsj.imagepreviewer.util.MapImageUtil;
 import io.wdsj.imagepreviewer.util.Util;
 import io.wdsj.imagepreviewer.util.VirtualThreadUtil;
 import org.bukkit.map.MapPalette;
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static io.wdsj.imagepreviewer.ImagePreviewer.config;
+import static io.wdsj.imagepreviewer.util.Util.formatSize;
 
 public class ImageLoader {
 
@@ -45,13 +49,13 @@ public class ImageLoader {
 
     public static void init() {
         imageCache = CacheBuilder.newBuilder()
-                .maximumSize(ImagePreviewer.config().cache_maximum_size)
-                .expireAfterWrite(ImagePreviewer.config().cache_expire_time, TimeUnit.MINUTES)
+                .maximumSize(config().cache_maximum_size)
+                .expireAfterWrite(config().cache_expire_time, TimeUnit.MINUTES)
                 .build();
     }
 
     public static CompletableFuture<ImageData> imageAsData(String urlString) {
-        if (ImagePreviewer.config().enable_image_cache) {
+        if (config().enable_image_cache) {
             var cachedImage = imageCache.getIfPresent(urlString);
             if (cachedImage != null) {
                 return CompletableFuture.completedFuture(cachedImage);
@@ -63,18 +67,27 @@ public class ImageLoader {
                 URL url = new URI(urlString).toURL();
                 ImageData data = processImageFromUrl(url);
 
-                if (ImagePreviewer.config().enable_image_cache) {
+                if (config().enable_image_cache) {
                     imageCache.put(urlString, data);
                 }
                 return data;
             } catch (IOException | URISyntaxException e) {
-                throw new RuntimeException("Failed to download or process the image from URL: " + urlString, e);
+                throw new RuntimeException("Failed to download or process the image from URL: " + e.getMessage());
             }
         }, executor);
     }
 
     private static ImageData processImageFromUrl(URL url) throws IOException {
-        try (ImageInputStream input = ImageIO.createImageInputStream(url.openStream())) {
+        URLConnection connection = url.openConnection();
+        long limit = config().image_max_size_kb;
+        if (limit != -1) {
+            long contentLength = connection.getContentLengthLong();
+            long limitBytes = limit * 1024;
+            if (contentLength > limitBytes) {
+                throw new IOException("Image size " + formatSize(contentLength) + " exceeds limit " + formatSize(limitBytes));
+            }
+        }
+        try (ImageInputStream input = ImageIO.createImageInputStream(connection.getInputStream())) {
             if (input == null) {
                 throw new IOException("Unable to create ImageInputStream from URL.");
             }
@@ -90,7 +103,7 @@ public class ImageLoader {
 
                 boolean isAnimated = reader.getFormatName().equalsIgnoreCase("gif")
                         && !Config.isReloading
-                        && ImagePreviewer.config().process_multi_frame_gif;
+                        && config().process_multi_frame_gif;
 
                 if (isAnimated) {
                     AnimatedImage animatedImage = readAnimatedGif(reader); // currently only supports gif
@@ -99,7 +112,7 @@ public class ImageLoader {
                     }
                     List<byte[]> imageDataList = animatedImage.frames().stream()
                             .map(MapPalette::resizeImage)
-                            .map(MapPalette::imageToBytes)
+                            .map(MapImageUtil::imageToBytes)
                             .collect(Collectors.toList());
                     return new ImageData(imageDataList, true, animatedImage.delay());
                 } else {
@@ -108,7 +121,7 @@ public class ImageLoader {
                         throw new IllegalArgumentException("The provided URL is not a valid image");
                     }
                     BufferedImage resizedImage = MapPalette.resizeImage(originalImage);
-                    List<byte[]> imageDataList = List.of(MapPalette.imageToBytes(resizedImage));
+                    List<byte[]> imageDataList = List.of(MapImageUtil.imageToBytes(resizedImage));
                     return new ImageData(imageDataList);
                 }
             } finally {

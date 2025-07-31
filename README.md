@@ -7,6 +7,7 @@ Preview images in chat bar easily, efficiently.
 - Support animated images like GIFs.
 - Full packet-based, maps are client-side.
 - Lightweight, zero load on server thread.
+- Bedrock player support.
 
 ## Installation
 

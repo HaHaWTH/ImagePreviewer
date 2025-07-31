@@ -23,7 +23,7 @@ import java.util.ArrayList;
 
 public class ConstructCommandExecutor implements CommandExecutor {
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         if (Config.isReloading) return true;
         if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("reload") && sender.hasPermission(PermissionsEnum.RELOAD.getPermission())) {
