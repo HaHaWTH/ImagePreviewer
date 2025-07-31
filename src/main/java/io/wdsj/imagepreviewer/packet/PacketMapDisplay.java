@@ -103,7 +103,7 @@ public class PacketMapDisplay {
         return true;
     }
 
-    public void despawn() {
+    public synchronized void despawn() {
         cancelTasks();
         plugin.getMapManager().untrack(owner);
         ticksSurvived.set(0L);
