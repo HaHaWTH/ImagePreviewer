@@ -61,6 +61,9 @@ public class DisplayListener implements Listener {
         }
     }
 
+    /**
+     * Despawn the map when the player swapped hand items.
+     */
     @EventHandler(priority = EventPriority.LOW)
     public void onSwapItem(PlayerSwapHandItemsEvent event) {
         var player = event.getPlayer();

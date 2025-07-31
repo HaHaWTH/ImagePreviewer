@@ -22,7 +22,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Manages displaying image data to a player by sending packets
+ * A single-use class that manages displaying image data to a player by sending packets
  * to make them hold a virtual map in their main hand.
  * This display is client-side only.
  */
@@ -37,6 +37,7 @@ public class PacketMapDisplay {
     private final int mapId;
     private final long lifecycleTicks;
     private final AtomicLong ticksSurvived;
+    private volatile boolean isSpawned;
 
     private int originalHeldSlot;
     private int currentFrame;
@@ -63,6 +64,7 @@ public class PacketMapDisplay {
     /**
      * Attempts to spawn the map display in the player's hand.
      * Fails if the player's main hand is not empty.
+     * This should be called on the main thread.
      *
      * @return true if the display was spawned, false otherwise.
      */
@@ -99,21 +101,31 @@ public class PacketMapDisplay {
             startAnimation();
         }
         startLifecycleTicker();
-
+        isSpawned = true;
         return true;
     }
 
-    public synchronized void despawn() {
+    public void despawn() {
+        despawn(true);
+    }
+
+    public synchronized void despawn(boolean updateInventory) {
+        if (!isSpawned) {
+            return;
+        }
         cancelTasks();
         plugin.getMapManager().untrack(owner);
         ticksSurvived.set(0L);
-        try {
-            owner.updateInventory();
-        } catch (Throwable ignored) {
+        if (updateInventory) {
+            try {
+                owner.updateInventory();
+            } catch (Throwable ignored) {
+            }
         }
+        isSpawned = false;
     }
 
-    public void cancelTasks() {
+    private void cancelTasks() {
         if (tickLifecycleTask != null) {
             tickLifecycleTask.cancel(false);
             tickLifecycleTask = null;

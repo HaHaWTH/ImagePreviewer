@@ -84,8 +84,9 @@ public class MapManager implements Listener {
         Player player = event.getPlayer();
         var uuid = player.getUniqueId();
         queuedPlayers.remove(uuid);
-        if (hasRunningPreview(player)) {
-            displays.remove(uuid).cancelTasks();
+        var display = displays.remove(uuid);
+        if (display != null) {
+            display.despawn(false);
         }
     }
 
@@ -94,8 +95,9 @@ public class MapManager implements Listener {
         Player player = event.getPlayer();
         var uuid = player.getUniqueId();
         queuedPlayers.remove(uuid);
-        if (hasRunningPreview(player)) {
-            displays.remove(uuid).cancelTasks();
+        var display = displays.remove(uuid);
+        if (display != null) {
+            display.despawn(false);
         }
     }
 }
