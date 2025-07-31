@@ -18,7 +18,7 @@ public class PaperDisplayListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onInventoryClose(InventoryDragEvent event) {
+    public void onInventoryDrag(InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         PacketMapDisplay display = mapManager.getDisplay(player);
 

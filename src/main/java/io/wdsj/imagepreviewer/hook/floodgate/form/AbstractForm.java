@@ -1,4 +1,4 @@
-package io.wdsj.imagepreviewer.hook.floodgate;
+package io.wdsj.imagepreviewer.hook.floodgate.form;
 
 import org.geysermc.floodgate.api.player.FloodgatePlayer;
 

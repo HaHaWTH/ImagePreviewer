@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A single-use class that manages displaying image data to a player by sending packets
- * to make them hold a virtual map in their main hand.
+ * to make them hold a virtual map in their hands.
  * This display is client-side only.
  */
 public class PacketMapDisplay {

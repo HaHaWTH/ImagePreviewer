@@ -3,6 +3,7 @@ package io.wdsj.imagepreviewer.command;
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.hook.floodgate.FloodgateHook;
+import io.wdsj.imagepreviewer.hook.floodgate.form.PreviewHistoryForm;
 import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.listener.ChatListener;
 import io.wdsj.imagepreviewer.packet.PacketMapDisplay;
@@ -60,9 +61,9 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     var fgPlayer = FloodgateHook.getFloodgatePlayer(player);
                     if (args.length == 2) {
                         int limit = Math.max(Util.toInt(args[1], ImagePreviewer.config().url_history_size), 1);
-                        new FloodgateHook.PreviewHistoryForm(limit).sendForm(fgPlayer);
+                        new PreviewHistoryForm(limit).sendForm(fgPlayer);
                     } else {
-                        new FloodgateHook.PreviewHistoryForm().sendForm(fgPlayer);
+                        new PreviewHistoryForm().sendForm(fgPlayer);
                     }
                 } else {
                     MessageUtil.sendMessage(sender, ImagePreviewer.config().message_history_command);
