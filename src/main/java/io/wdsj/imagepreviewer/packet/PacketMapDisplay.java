@@ -70,10 +70,6 @@ public class PacketMapDisplay {
      */
     public boolean spawn() {
         plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
-        try {
-            owner.updateInventory();
-        } catch (Throwable ignored) {
-        }
         PlayerInventory inventory = owner.getInventory();
         boolean useOffhand = ImagePreviewer.config().use_offhand;
         if (!ImagePreviewer.config().allow_nonempty_hand) {
@@ -115,7 +111,7 @@ public class PacketMapDisplay {
         }
         cancelTasks();
         plugin.getMapManager().untrack(owner);
-        ticksSurvived.set(0L);
+        //ticksSurvived.set(0L);
         if (updateInventory) {
             try {
                 owner.updateInventory();
