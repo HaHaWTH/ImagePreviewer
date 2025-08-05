@@ -43,11 +43,11 @@ public class MapManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    public ScheduledFuture<?> scheduleTaskAtFixedRate(Runnable runnable, long delay, long period) {
+    public ScheduledFuture<?> scheduleAsyncTaskAtFixedRate(Runnable runnable, long delay, long period) {
         return executor.scheduleAtFixedRate(runnable, delay, period, TimeUnit.MILLISECONDS);
     }
 
-    public ScheduledFuture<?> scheduleTaskLater(Runnable runnable, long delay) {
+    public ScheduledFuture<?> scheduleAsyncTaskLater(Runnable runnable, long delay) {
         return executor.schedule(runnable, delay, TimeUnit.MILLISECONDS);
     }
 

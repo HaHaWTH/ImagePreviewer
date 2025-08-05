@@ -141,7 +141,7 @@ public class PacketMapDisplay {
             delay = Config.isReloading ? 100L : ImagePreviewer.config().gif_frame_delay;
         }
 
-        updateFrameTask = plugin.getMapManager().scheduleTaskAtFixedRate(() -> {
+        updateFrameTask = plugin.getMapManager().scheduleAsyncTaskAtFixedRate(() -> {
             currentFrame++;
             if (currentFrame >= imageData.frameData().size()) {
                 currentFrame = 0;
@@ -174,7 +174,7 @@ public class PacketMapDisplay {
      * Starts the task that ticks down the display's lifetime, despawning it when expired.
      */
     private void startLifecycleTicker() {
-        tickLifecycleTask = plugin.getMapManager().scheduleTaskAtFixedRate(() -> {
+        tickLifecycleTask = plugin.getMapManager().scheduleAsyncTaskAtFixedRate(() -> {
             if (ticksSurvived.incrementAndGet() >= lifecycleTicks) {
                 this.despawn();
             }
