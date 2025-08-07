@@ -47,6 +47,10 @@ public class MapManager implements Listener {
         return executor.scheduleAtFixedRate(runnable, delay, period, TimeUnit.MILLISECONDS);
     }
 
+    public ScheduledFuture<?> scheduleAsyncTaskWithFixedDelay(Runnable runnable, long delay, long period) {
+        return executor.scheduleWithFixedDelay(runnable, delay, period, TimeUnit.MILLISECONDS);
+    }
+
     public ScheduledFuture<?> scheduleAsyncTaskLater(Runnable runnable, long delay) {
         return executor.schedule(runnable, delay, TimeUnit.MILLISECONDS);
     }
