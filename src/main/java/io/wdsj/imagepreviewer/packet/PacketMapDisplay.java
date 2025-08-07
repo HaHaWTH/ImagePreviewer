@@ -41,7 +41,6 @@ public class PacketMapDisplay {
 
     private int originalHeldSlot;
     private int currentFrame;
-    private ItemStack originalItem;
 
     private ScheduledFuture<?> updateFrameTask;
     private ScheduledFuture<?> tickLifecycleTask;
@@ -78,7 +77,6 @@ public class PacketMapDisplay {
         }
 
         this.originalHeldSlot = useOffhand && (!FloodgateHook.isFloodgatePresent() || !FloodgateHook.isFloodgatePlayer(owner)) ? 40 : inventory.getHeldItemSlot();
-        this.originalItem = SpigotConversionUtil.fromBukkitItemStack(inventory.getItemInMainHand());
 
         ItemStack mapItemStack = makeMapItemStack();
         WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
@@ -113,10 +111,13 @@ public class PacketMapDisplay {
         plugin.getMapManager().untrack(owner);
         //ticksSurvived.set(0L);
         if (updateInventory) {
-            try {
-                owner.updateInventory();
-            } catch (Throwable ignored) {
-            }
+            WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
+                    PLAYER_INVENTORY_WINDOW_ID,
+                    0,
+                    originalHeldSlot,
+                    SpigotConversionUtil.fromBukkitItemStack(owner.getInventory().getItem(originalHeldSlot))
+            );
+            PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, setSlotPacket);
         }
         isSpawned = false;
     }

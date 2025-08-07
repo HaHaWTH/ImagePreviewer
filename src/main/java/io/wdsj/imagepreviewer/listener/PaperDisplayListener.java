@@ -3,7 +3,6 @@ package io.wdsj.imagepreviewer.listener;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.packet.MapManager;
-import io.wdsj.imagepreviewer.packet.PacketMapDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
