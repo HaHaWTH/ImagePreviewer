@@ -142,7 +142,7 @@ public class PacketMapDisplay {
             delay = Config.isReloading ? 100L : ImagePreviewer.config().gif_frame_delay;
         }
 
-        updateFrameTask = plugin.getMapManager().scheduleAsyncTaskWithFixedDelay(() -> {
+        updateFrameTask = plugin.getMapManager().scheduleAsyncTaskAtFixedRate(() -> {
             currentFrame++;
             if (currentFrame >= imageData.frameData().size()) {
                 currentFrame = 0;
