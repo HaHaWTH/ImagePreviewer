@@ -94,8 +94,8 @@ public class PacketMapDisplay {
         if (isAnimated) {
             startAnimation();
         }
-        startLifecycleTicker();
         isSpawned = true;
+        startLifecycleTicker();
         return true;
     }
 
