@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+// Copied from 1.21.&
 public final class MapImageUtil {
     static final Color[] colors = {
             new Color(0x00000000, true),
