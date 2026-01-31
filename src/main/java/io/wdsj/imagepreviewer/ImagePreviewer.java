@@ -79,7 +79,7 @@ public class ImagePreviewer extends JavaPlugin {
         LOGGER.info("ImagePreviewer is enabled.");
         if (config().check_for_update) {
             getScheduler().runTaskAsynchronously(() -> {
-                LOGGER.info("Checking for update...");
+                LOGGER.info("Checking for updates...");
                 if (Updater.isUpdateAvailable()) {
                     LOGGER.warning("There is a new version available: " + Updater.getLatestVersion() +
                             ", you're on: " + Updater.getCurrentVersion());
