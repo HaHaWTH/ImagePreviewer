@@ -68,6 +68,9 @@ public class PacketMapDisplay {
      * @return true if the display was spawned, false otherwise.
      */
     public boolean spawn() {
+        if (isSpawned) {
+            return false;
+        }
         plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
         PlayerInventory inventory = owner.getInventory();
         boolean useOffhand = ImagePreviewer.config().use_offhand;

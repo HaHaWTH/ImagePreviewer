@@ -75,12 +75,17 @@ public class MapManager implements Listener {
     public List<PacketMapDisplay> getDisplays() {
         return List.copyOf(displays.values());
     }
+
     public void close() {
         executor.shutdown();
         displays.values().forEach(PacketMapDisplay::despawn);
         displays.clear();
         queuedPlayers.clear();
         HandlerList.unregisterAll(this);
+    }
+
+    public boolean canSpawnPreview(Player player) {
+        return !hasRunningPreview(player) && !queuedPlayers.contains(player.getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

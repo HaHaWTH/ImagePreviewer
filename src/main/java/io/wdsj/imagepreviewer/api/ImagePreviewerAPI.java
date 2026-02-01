@@ -38,12 +38,12 @@ public class ImagePreviewerAPI {
     }
 
     public boolean spawnPreview(Player player, ImageData imageData) {
-        if (plugin.getMapManager().hasRunningPreview(player) || plugin.getMapManager().queuedPlayers.contains(player.getUniqueId())) return false;
+        if (!plugin.getMapManager().canSpawnPreview(player)) return false;
         return new PacketMapDisplay(plugin, player, imageData).spawn();
     }
 
     public boolean spawnPreview(Player player, ImageData imageData, long lifecycleTicks) {
-        if (plugin.getMapManager().hasRunningPreview(player) || plugin.getMapManager().queuedPlayers.contains(player.getUniqueId())) return false;
+        if (!plugin.getMapManager().canSpawnPreview(player)) return false;
         return new PacketMapDisplay(plugin, player, imageData, lifecycleTicks).spawn();
     }
 
