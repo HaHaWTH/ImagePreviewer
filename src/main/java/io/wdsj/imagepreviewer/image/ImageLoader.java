@@ -3,6 +3,7 @@ package io.wdsj.imagepreviewer.image;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.wdsj.imagepreviewer.ImagePreviewer;
 import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.util.MapImageUtil;
 import io.wdsj.imagepreviewer.util.Util;
@@ -29,6 +30,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.wdsj.imagepreviewer.ImagePreviewer.config;
@@ -54,15 +57,15 @@ public class ImageLoader {
                 .build();
     }
 
-    public static CompletableFuture<ImageData> imageAsData(String urlString) {
+    public static ImageFetchTask imageAsData(String urlString) {
         if (config().enable_image_cache) {
             var cachedImage = imageCache.getIfPresent(urlString);
             if (cachedImage != null) {
-                return CompletableFuture.completedFuture(cachedImage);
+                return new ImageFetchTask(urlString, CompletableFuture.completedFuture(cachedImage));
             }
         }
 
-        return CompletableFuture.supplyAsync(() -> {
+        return new ImageFetchTask(urlString, CompletableFuture.supplyAsync(() -> {
             try {
                 URL url = new URI(urlString).toURL();
                 ImageData data = processImageFromUrl(url);
@@ -74,7 +77,7 @@ public class ImageLoader {
             } catch (IOException | URISyntaxException e) {
                 throw new RuntimeException("Failed to download or process the image from URL: " + e.getMessage());
             }
-        }, executor);
+        }, executor));
     }
 
     private static ImageData processImageFromUrl(URL url) throws IOException {
@@ -205,5 +208,22 @@ public class ImageLoader {
             }
         }
         return null;
+    }
+
+    public record ImageFetchTask(String urlString, CompletableFuture<ImageData> future) {
+        public ImageFetchTask thenAcceptOnMain(Consumer<ImageData> consumer) {
+            future.thenAccept(data -> ImagePreviewer.getScheduler().runTask(() -> consumer.accept(data)));
+            return this;
+        }
+
+        public ImageFetchTask thenAccept(Consumer<ImageData> consumer) {
+            future.thenAccept(consumer);
+            return this;
+        }
+
+        public ImageFetchTask exceptionally(Function<Throwable, ImageData> function) {
+            future.exceptionally(function);
+            return this;
+        }
     }
 }

@@ -76,7 +76,7 @@ public class PreviewHistoryForm extends AbstractForm {
             plugin.getMapManager().queuedPlayers.add(uuid);
             MessageUtil.sendMessage(javaPlayer, config.message_preview_loading);
             ImageLoader.imageAsData(entry.message())
-                    .thenAccept(imageData -> {
+                    .thenAcceptOnMain(imageData -> {
                         if (!new PacketMapDisplay(plugin, javaPlayer, imageData).spawn()) {
                             MessageUtil.sendMessage(javaPlayer, config.message_not_empty_hand);
                         }
