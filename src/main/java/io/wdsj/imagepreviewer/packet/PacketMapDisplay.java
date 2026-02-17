@@ -169,7 +169,7 @@ public class PacketMapDisplay {
             if (next >= imageData.frameData().size()) {
                 next = 0;
             }
-            VH_CURRENT_FRAME.setVolatile(this, next);
+            VH_CURRENT_FRAME.setOpaque(this, next);
 
             this.updateFrame(next);
         }, 500L, delay);
@@ -196,10 +196,6 @@ public class PacketMapDisplay {
 
             if (survived >= lifecycleTicks) {
                 this.despawn();
-                return;
-            }
-            if (survived % 5 == 0) {
-                this.sendItemStack(originalHeldSlot, (int) VH_CURRENT_FRAME.getVolatile(this));
             }
         }, TICK_TO_MILLISECONDS, TICK_TO_MILLISECONDS);
     }

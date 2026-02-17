@@ -2,6 +2,7 @@ package io.wdsj.imagepreviewer;
 
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import com.github.Anon8281.universalScheduler.scheduling.schedulers.TaskScheduler;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import io.wdsj.imagepreviewer.api.ImagePreviewerAPI;
 import io.wdsj.imagepreviewer.command.ConstructCommandExecutor;
@@ -10,6 +11,7 @@ import io.wdsj.imagepreviewer.config.Config;
 import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.listener.ChatListener;
 import io.wdsj.imagepreviewer.listener.DisplayListener;
+import io.wdsj.imagepreviewer.listener.DropItemPacketListener;
 import io.wdsj.imagepreviewer.listener.PaperDisplayListener;
 import io.wdsj.imagepreviewer.packet.MapManager;
 import io.wdsj.imagepreviewer.permission.CachingPermTool;
@@ -76,6 +78,7 @@ public class ImagePreviewer extends JavaPlugin {
         if (isPaper) {
             Bukkit.getPluginManager().registerEvents(new PaperDisplayListener(this), this);
         }
+        PacketEvents.getAPI().getEventManager().registerListener(new DropItemPacketListener(mapManager));
         LOGGER.info("ImagePreviewer is enabled.");
         if (config().check_for_update) {
             getScheduler().runTaskAsynchronously(() -> {
