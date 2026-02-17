@@ -18,8 +18,9 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A single-use class that manages displaying image data to a player by sending packets
@@ -30,17 +31,33 @@ public class PacketMapDisplay {
     private static final long TICK_TO_MILLISECONDS = 50L;
     private static final int PLAYER_INVENTORY_WINDOW_ID = -2;
 
+    private static final VarHandle VH_TICKS_SURVIVED;
+    private static final VarHandle VH_CURRENT_FRAME;
+
+    static {
+        try {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            VH_TICKS_SURVIVED = l.findVarHandle(PacketMapDisplay.class, "ticksSurvived", long.class);
+            VH_CURRENT_FRAME = l.findVarHandle(PacketMapDisplay.class, "currentFrame", int.class);
+        } catch (ReflectiveOperationException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     private final ImagePreviewer plugin;
     private final Player owner;
     private final ImageData imageData;
     private final boolean isAnimated;
     private final int mapId;
     private final long lifecycleTicks;
-    private final AtomicLong ticksSurvived;
+
+    private volatile long ticksSurvived;
+    private volatile int currentFrame;
     private volatile boolean isSpawned;
 
     private int originalHeldSlot;
-    private int currentFrame;
+
+    private final ItemStack cachedMapItem;
 
     private ScheduledFuture<?> updateFrameTask;
     private ScheduledFuture<?> tickLifecycleTask;
@@ -55,9 +72,8 @@ public class PacketMapDisplay {
         this.imageData = imageData;
         this.isAnimated = imageData.animated();
         this.lifecycleTicks = lifecycleTicks;
-        this.currentFrame = 0;
-        this.ticksSurvived = new AtomicLong(0L);
         this.mapId = RandomUtil.genRandomMapId();
+        this.cachedMapItem = makeMapItemStack();
     }
 
     /**
@@ -81,17 +97,7 @@ public class PacketMapDisplay {
 
         this.originalHeldSlot = useOffhand && (!FloodgateHook.isFloodgatePresent() || !FloodgateHook.isFloodgatePlayer(owner)) ? 40 : inventory.getHeldItemSlot();
 
-        ItemStack mapItemStack = makeMapItemStack();
-        WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
-                PLAYER_INVENTORY_WINDOW_ID,
-                0,
-                originalHeldSlot,
-                mapItemStack
-        );
-        WrapperPlayServerMapData mapDataPacket = PacketUtil.makePacket(mapId, imageData.frameData().getFirst());
-
-        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, setSlotPacket);
-        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, mapDataPacket);
+        this.sendItemStack(originalHeldSlot, (int) VH_CURRENT_FRAME.getOpaque(this));
 
         plugin.getMapManager().track(owner, this);
         if (isAnimated) {
@@ -100,6 +106,19 @@ public class PacketMapDisplay {
         isSpawned = true;
         startLifecycleTicker();
         return true;
+    }
+
+    private void sendItemStack(int originalHeldSlot, int mapDataFrameIndex) {
+        WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
+                PLAYER_INVENTORY_WINDOW_ID,
+                0,
+                originalHeldSlot,
+                this.cachedMapItem
+        );
+        WrapperPlayServerMapData mapDataPacket = PacketUtil.makePacket(mapId, imageData.frameData().get(mapDataFrameIndex));
+
+        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, setSlotPacket);
+        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, mapDataPacket);
     }
 
     public void despawn() {
@@ -112,7 +131,6 @@ public class PacketMapDisplay {
         }
         cancelTasks();
         plugin.getMapManager().untrack(owner);
-        //ticksSurvived.set(0L);
         if (updateInventory) {
             WrapperPlayServerSetSlot setSlotPacket = new WrapperPlayServerSetSlot(
                     PLAYER_INVENTORY_WINDOW_ID,
@@ -146,11 +164,14 @@ public class PacketMapDisplay {
         }
 
         updateFrameTask = plugin.getMapManager().scheduleAsyncTaskAtFixedRate(() -> {
-            currentFrame++;
-            if (currentFrame >= imageData.frameData().size()) {
-                currentFrame = 0;
+            int current = (int) VH_CURRENT_FRAME.getOpaque(this);
+            int next = current + 1;
+            if (next >= imageData.frameData().size()) {
+                next = 0;
             }
-            this.updateFrame();
+            VH_CURRENT_FRAME.setVolatile(this, next);
+
+            this.updateFrame(next);
         }, 500L, delay);
     }
 
@@ -164,23 +185,21 @@ public class PacketMapDisplay {
         }
     }
 
-    /**
-     * Sends the next frame of the image to the player's map.
-     */
-    public void updateFrame() {
-        if (currentFrame < imageData.frameData().size()) {
-            WrapperPlayServerMapData mapDataPacket = PacketUtil.makePacket(mapId, imageData.frameData().get(currentFrame));
-            PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, mapDataPacket);
-        }
+    public void updateFrame(int frameIndex) {
+        WrapperPlayServerMapData mapDataPacket = PacketUtil.makePacket(mapId, imageData.frameData().get(frameIndex));
+        PacketEvents.getAPI().getPlayerManager().sendPacketSilently(owner, mapDataPacket);
     }
 
-    /**
-     * Starts the task that ticks down the display's lifetime, despawning it when expired.
-     */
     private void startLifecycleTicker() {
         tickLifecycleTask = plugin.getMapManager().scheduleAsyncTaskAtFixedRate(() -> {
-            if (ticksSurvived.incrementAndGet() >= lifecycleTicks) {
+            long survived = (long) VH_TICKS_SURVIVED.getAndAdd(this, 1L) + 1;
+
+            if (survived >= lifecycleTicks) {
                 this.despawn();
+                return;
+            }
+            if (survived % 5 == 0) {
+                this.sendItemStack(originalHeldSlot, (int) VH_CURRENT_FRAME.getVolatile(this));
             }
         }, TICK_TO_MILLISECONDS, TICK_TO_MILLISECONDS);
     }
@@ -205,7 +224,7 @@ public class PacketMapDisplay {
     }
 
     public long getLifetimeLeft() {
-        return lifecycleTicks - ticksSurvived.get();
+        return lifecycleTicks - (long) VH_TICKS_SURVIVED.getVolatile(this);
     }
 
     public int getOriginalHeldSlot() {
