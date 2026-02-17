@@ -28,7 +28,7 @@ public class DisplayListener implements Listener {
         Player player = event.getPlayer();
         PacketMapDisplay display = mapManager.getDisplay(player);
 
-        if (display != null && player.getInventory().getHeldItemSlot() == display.getOriginalHeldSlot()) {
+        if (display != null) {
             event.setCancelled(true);
             display.despawn();
         }
