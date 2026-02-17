@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
@@ -17,6 +18,20 @@ public class DisplayListener implements Listener {
 
     public DisplayListener(ImagePreviewer plugin) {
         this.mapManager = plugin.getMapManager();
+    }
+
+    /**
+     * Prevents the player from dropping the virtual map.
+     */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        PacketMapDisplay display = mapManager.getDisplay(player);
+
+        if (display != null) {
+            event.setCancelled(true);
+            display.despawn();
+        }
     }
 
     /**
