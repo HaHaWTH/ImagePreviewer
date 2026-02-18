@@ -1,43 +1,67 @@
 package io.wdsj.imagepreviewer.command;
 
+import io.wdsj.imagepreviewer.ImagePreviewer;
+import io.wdsj.imagepreviewer.image.ImageLoader;
 import io.wdsj.imagepreviewer.permission.PermissionsEnum;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ConstructTabCompleter implements TabCompleter {
+    private static String[] cachedLocalFiles = new String[0];
+    static {
+        rebuildLocalFilesCache();
+    }
+    public static void rebuildLocalFilesCache() {
+        File localDir = new File(ImagePreviewer.getInstance().getDataFolder(), ImageLoader.LOCAL_DIR_NAME);
+        if (localDir.exists() && localDir.isDirectory()) {
+            String[] files = localDir.list();
+            if (files != null) {
+                cachedLocalFiles = files;
+            }
+        }
+    }
     @Nullable
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String s, @NotNull String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String s, @NotNull String @NonNull [] args) {
         if (args.length == 1) {
             List<String> tabComplete = new ArrayList<>();
-            if (sender.hasPermission(PermissionsEnum.RELOAD.getPermission()) && args[0].startsWith("r")) {
+            if (sender.hasPermission(PermissionsEnum.RELOAD.getPermission())) {
                 tabComplete.add("reload");
-            } else if (sender.hasPermission(PermissionsEnum.HELP.getPermission()) && args[0].startsWith("he")) {
+            }
+            if (sender.hasPermission(PermissionsEnum.HELP.getPermission())) {
                 tabComplete.add("help");
-            } else if (sender.hasPermission(PermissionsEnum.CANCEL_PREVIEW.getPermission()) && args[0].startsWith("i")) {
+            }
+            if (sender.hasPermission(PermissionsEnum.CANCEL_PREVIEW.getPermission())) {
                 tabComplete.add("cancel");
-            } else if (sender.hasPermission(PermissionsEnum.PREVIEW.getPermission()) && args[0].startsWith("p")) {
+            }
+            if (sender.hasPermission(PermissionsEnum.PREVIEW.getPermission())) {
                 tabComplete.add("preview");
-            } else if (sender.hasPermission(PermissionsEnum.HISTORY.getPermission()) && args[0].startsWith("hi")) {
-                tabComplete.add("history");
-            } else if (sender.hasPermission(PermissionsEnum.RELOAD.getPermission()) ||
-                    sender.hasPermission(PermissionsEnum.HELP.getPermission()) || sender.hasPermission(PermissionsEnum.PREVIEW.getPermission()) ||
-                    sender.hasPermission(PermissionsEnum.HISTORY.getPermission())) {
-                tabComplete.add("help");
-                tabComplete.add("reload");
-                tabComplete.add("preview");
-                tabComplete.add("cancel");
+            }
+            if (sender.hasPermission(PermissionsEnum.HISTORY.getPermission())) {
                 tabComplete.add("history");
             }
-            return tabComplete;
+            return StringUtil.copyPartialMatches(args[0], tabComplete, new ArrayList<>());
         }
-        return Collections.emptyList(); // Must return empty list, if null paper will supply player names
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("preview")) {
+            if (sender.hasPermission(PermissionsEnum.PREVIEW_LOCAL.getPermission())) {
+                List<String> suggestions = new ArrayList<>();
+                for (String f : cachedLocalFiles) {
+                    suggestions.add("file:" + f);
+                }
+                return StringUtil.copyPartialMatches(args[1], suggestions, new ArrayList<>());
+            }
+        }
+        return Collections.emptyList();
     }
 }

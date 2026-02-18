@@ -17,6 +17,7 @@ import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,11 +26,9 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,6 +46,10 @@ public class ImageLoader {
     );
 
     private static Cache<String, ImageData> imageCache;
+    private static final Map<String, CompletableFuture<ImageData>> pendingTasks = new ConcurrentHashMap<>();
+
+    public static final String LOCAL_DIR_NAME = "local_storage";
+    private static final String FILE_PREFIX = "file:";
 
     private record AnimatedImage(List<BufferedImage> frames, Optional<Integer> delay) {}
 
@@ -55,33 +58,74 @@ public class ImageLoader {
                 .maximumSize(config().cache_maximum_size)
                 .expireAfterWrite(config().cache_expire_time, TimeUnit.MINUTES)
                 .build();
+        File localDir = new File(ImagePreviewer.getInstance().getDataFolder(), LOCAL_DIR_NAME);
+        if (!localDir.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            localDir.mkdirs();
+        }
     }
 
-    public static ImageFetchTask imageAsData(String urlString) {
+    public static ImageFetchTask imageAsData(String input) {
         if (config().enable_image_cache) {
-            var cachedImage = imageCache.getIfPresent(urlString);
+            var cachedImage = imageCache.getIfPresent(input);
             if (cachedImage != null) {
-                return new ImageFetchTask(urlString, CompletableFuture.completedFuture(cachedImage));
+                return new ImageFetchTask(input, CompletableFuture.completedFuture(cachedImage));
             }
         }
 
-        return new ImageFetchTask(urlString, CompletableFuture.supplyAsync(() -> {
-            try {
-                URL url = new URI(urlString).toURL();
-                ImageData data = processImageFromUrl(url);
+        CompletableFuture<ImageData> future = pendingTasks.computeIfAbsent(input, key ->
+                CompletableFuture.supplyAsync(() -> {
+                            try {
+                                ImageData data;
+                                if (key.startsWith(FILE_PREFIX)) {
+                                    String fileName = key.substring(FILE_PREFIX.length());
+                                    data = processImageFromFile(fileName);
+                                } else {
+                                    URL url = new URI(key).toURL();
+                                    data = processImageFromUrl(url);
+                                }
 
-                if (config().enable_image_cache) {
-                    imageCache.put(urlString, data);
-                }
-                return data;
-            } catch (IOException | URISyntaxException e) {
-                throw new RuntimeException("Failed to download or process the image from URL: " + e.getMessage());
-            }
-        }, executor));
+                                if (config().enable_image_cache) {
+                                    imageCache.put(key, data);
+                                }
+                                return data;
+                            } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+                                throw new CompletionException(e);
+                            }
+                        }, executor)
+                        .whenComplete((result, ex) -> pendingTasks.remove(input))
+        );
+
+        return new ImageFetchTask(input, future);
+    }
+
+    private static ImageData processImageFromFile(String fileName) throws IOException {
+        File dataFolder = ImagePreviewer.getInstance().getDataFolder();
+        File localDir = new File(dataFolder, LOCAL_DIR_NAME);
+        File imageFile = new File(localDir, fileName);
+
+        if (!imageFile.getCanonicalPath().startsWith(localDir.getCanonicalPath())) {
+            throw new IOException("Access denied: Invalid file path.");
+        }
+
+        if (!imageFile.exists()) {
+            throw new IOException("File not found: " + fileName);
+        }
+
+        if (imageFile.isDirectory()) {
+            throw new IOException("Path is a directory, not a file.");
+        }
+
+        try (ImageInputStream input = ImageIO.createImageInputStream(imageFile)) {
+            if (input == null) throw new IOException("Unable to create ImageInputStream from file.");
+            return processImageStream(input);
+        }
     }
 
     private static ImageData processImageFromUrl(URL url) throws IOException {
         URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(10000);
         long limit = config().image_max_size_kb;
         if (limit != -1) {
             long contentLength = connection.getContentLengthLong();
@@ -94,42 +138,45 @@ public class ImageLoader {
             if (input == null) {
                 throw new IOException("Unable to create ImageInputStream from URL.");
             }
+            return processImageStream(input);
+        }
+    }
 
-            Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
-            if (!readers.hasNext()) {
-                throw new IOException("No suitable ImageReader found for the image format at URL.");
-            }
+    private static ImageData processImageStream(ImageInputStream input) throws IOException {
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+        if (!readers.hasNext()) {
+            throw new IOException("No suitable ImageReader found for the image format.");
+        }
 
-            ImageReader reader = readers.next();
-            try {
-                reader.setInput(input, false);
+        ImageReader reader = readers.next();
+        try {
+            reader.setInput(input, false);
 
-                boolean isAnimated = reader.getFormatName().equalsIgnoreCase("gif")
-                        && !Config.isReloading
-                        && config().process_multi_frame_gif;
+            boolean isAnimated = reader.getFormatName().equalsIgnoreCase("gif")
+                    && !Config.isReloading
+                    && config().process_multi_frame_gif;
 
-                if (isAnimated) {
-                    AnimatedImage animatedImage = readAnimatedGif(reader); // currently only supports gif
-                    if (animatedImage.frames().isEmpty()) {
-                        throw new IllegalArgumentException("The provided URL is not a valid animated image");
-                    }
-                    List<byte[]> imageDataList = animatedImage.frames().stream()
-                            .map(MapPalette::resizeImage)
-                            .map(MapImageUtil::imageToBytes)
-                            .collect(Collectors.toList());
-                    return new ImageData(imageDataList, true, animatedImage.delay());
-                } else {
-                    BufferedImage originalImage = reader.read(0);
-                    if (originalImage == null) {
-                        throw new IllegalArgumentException("The provided URL is not a valid image");
-                    }
-                    BufferedImage resizedImage = MapPalette.resizeImage(originalImage);
-                    List<byte[]> imageDataList = List.of(MapImageUtil.imageToBytes(resizedImage));
-                    return new ImageData(imageDataList);
+            if (isAnimated) {
+                AnimatedImage animatedImage = readAnimatedGif(reader);
+                if (animatedImage.frames().isEmpty()) {
+                    throw new IllegalArgumentException("The provided data is not a valid animated image");
                 }
-            } finally {
-                reader.dispose();
+                List<byte[]> imageDataList = animatedImage.frames().stream()
+                        .map(MapPalette::resizeImage)
+                        .map(MapImageUtil::imageToBytes)
+                        .collect(Collectors.toList());
+                return new ImageData(imageDataList, true, animatedImage.delay());
+            } else {
+                BufferedImage originalImage = reader.read(0);
+                if (originalImage == null) {
+                    throw new IllegalArgumentException("The provided data is not a valid image");
+                }
+                BufferedImage resizedImage = MapPalette.resizeImage(originalImage);
+                List<byte[]> imageDataList = List.of(MapImageUtil.imageToBytes(resizedImage));
+                return new ImageData(imageDataList);
             }
+        } finally {
+            reader.dispose();
         }
     }
 

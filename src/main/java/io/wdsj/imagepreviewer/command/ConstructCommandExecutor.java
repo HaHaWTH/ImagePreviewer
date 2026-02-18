@@ -26,24 +26,27 @@ public class ConstructCommandExecutor implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         if (Config.isReloading) return true;
+
         if (args.length >= 1) {
-            if (args[0].equalsIgnoreCase("reload") && sender.hasPermission(PermissionsEnum.RELOAD.getPermission())) {
-                ImagePreviewer.getInstance().reloadConfiguration();
-                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_reload_success);
-                return true;
-            }
             if (args[0].equalsIgnoreCase("reload")) {
-                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
+                if (sender.hasPermission(PermissionsEnum.RELOAD.getPermission())) {
+                    ImagePreviewer.getInstance().reloadConfiguration();
+                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_reload_success);
+                } else {
+                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
+                }
                 return true;
             }
-            if (args[0].equalsIgnoreCase("help") && sender.hasPermission(PermissionsEnum.HELP.getPermission())) {
-                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_help_info);
-                return true;
-            }
+
             if (args[0].equalsIgnoreCase("help")) {
-                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
+                if (sender.hasPermission(PermissionsEnum.HELP.getPermission())) {
+                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_help_info);
+                } else {
+                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
+                }
                 return true;
             }
+
             if (args[0].equalsIgnoreCase("history")) {
                 if (!(sender instanceof Player player)) {
                     MessageUtil.sendMessage(sender, ImagePreviewer.config().message_command_player_only);
@@ -57,6 +60,7 @@ public class ConstructCommandExecutor implements CommandExecutor {
                     MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_history_to_show);
                     return true;
                 }
+
                 if (ImagePreviewer.config().hook_floodgate && FloodgateHook.isFloodgatePresent() && FloodgateHook.isFloodgatePlayer(player)) {
                     var fgPlayer = FloodgateHook.getFloodgatePlayer(player);
                     if (args.length == 2) {
@@ -107,72 +111,82 @@ public class ConstructCommandExecutor implements CommandExecutor {
                 }
                 return true;
             }
-        }
-        if (args.length >= 1) {
+
             if (args[0].equalsIgnoreCase("preview")) {
                 if (!(sender instanceof Player player)) {
                     MessageUtil.sendMessage(sender, ImagePreviewer.config().message_command_player_only);
                     return true;
                 }
-                if (CachingPermTool.hasPermission(PermissionsEnum.PREVIEW, player)) {
-                    if (args.length < 2) {
-                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_args_error);
-                        return true;
-                    }
-                    if (ImagePreviewer.getInstance().getMapManager().hasRunningPreview(player)) {
-                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_already_on_previewing);
-                        return true;
-                    }
-                    if (ImagePreviewer.getInstance().getMapManager().queuedPlayers.contains(player.getUniqueId())) {
-                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_preview_still_loading);
-                        return true;
-                    }
-                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_preview_loading);
-                    ImagePreviewer.getInstance().getMapManager().queuedPlayers.add(player.getUniqueId());
-                    ImageLoader.imageAsData(args[1].trim())
-                            .thenAcceptOnMain(imageData -> {
-                                if (args.length > 2) {
-                                    ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
-                                    if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW_TIME, player)) {
-                                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
-                                        return;
-                                    }
-                                    Long lifecycleTicks = Util.parseLong(args[2].trim());
-                                    if (lifecycleTicks == null || lifecycleTicks < 1) {
-                                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_args_error);
-                                        return;
-                                    }
-                                    if (!new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData, lifecycleTicks).spawn()) {
-                                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_not_empty_hand);
-                                    }
-                                } else {
-                                    if (!new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn()) {
-                                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_not_empty_hand);
-                                    }
-                                }
-                            })
-                            .exceptionally(ex -> {
-                                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_failed_to_load.replace("%reason%", ex.getMessage()));
-                                ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
-                                return null;
-                            });
-                } else {
+                if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW, player)) {
                     MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
+                    return true;
                 }
+                if (args.length < 2) {
+                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_args_error);
+                    return true;
+                }
+
+                String input = args[1].trim();
+                if (input.startsWith("file:")) {
+                    if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW_LOCAL, player)) {
+                        MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission + " (Local File)");
+                        return true;
+                    }
+                }
+
+                if (ImagePreviewer.getInstance().getMapManager().hasRunningPreview(player)) {
+                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_already_on_previewing);
+                    return true;
+                }
+                if (ImagePreviewer.getInstance().getMapManager().queuedPlayers.contains(player.getUniqueId())) {
+                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_preview_still_loading);
+                    return true;
+                }
+                MessageUtil.sendMessage(sender, ImagePreviewer.config().message_preview_loading);
+                ImagePreviewer.getInstance().getMapManager().queuedPlayers.add(player.getUniqueId());
+
+                ImageLoader.imageAsData(input)
+                        .thenAcceptOnMain(imageData -> {
+                            ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
+                            if (args.length > 2) {
+                                if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW_TIME, player)) {
+                                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
+                                    return;
+                                }
+                                Long lifecycleTicks = Util.parseLong(args[2].trim());
+                                if (lifecycleTicks == null || lifecycleTicks < 1) {
+                                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_args_error);
+                                    return;
+                                }
+                                if (!new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData, lifecycleTicks).spawn()) {
+                                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_not_empty_hand);
+                                }
+                            } else {
+                                if (!new PacketMapDisplay(ImagePreviewer.getInstance(), player, imageData).spawn()) {
+                                    MessageUtil.sendMessage(sender, ImagePreviewer.config().message_not_empty_hand);
+                                }
+                            }
+                        })
+                        .exceptionally(ex -> {
+                            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                            MessageUtil.sendMessage(sender, ImagePreviewer.config().message_failed_to_load.replace("%reason%", cause.getMessage()));
+                            ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
+                            return null;
+                        });
                 return true;
             }
         }
+
         MessageUtil.sendMessage(sender, ImagePreviewer.config().message_unknown_command);
         return true;
     }
 
     private Component buildHistoryComponent(ChatListener.MessageEntry entry, int index) {
         return Component.text(index + ". " + ImagePreviewer.config().message_history_entry
-                .replace("%time%", entry.time())
-                .replace("%sender%", entry.sender())
-                .replace("%url%", entry.message()))
-        .color(NamedTextColor.GRAY)
-        .clickEvent(ClickEvent.runCommand("/imagepreviewer preview " + entry.message()));
+                        .replace("%time%", entry.time())
+                        .replace("%sender%", entry.sender())
+                        .replace("%url%", entry.message()))
+                .color(NamedTextColor.GRAY)
+                .clickEvent(ClickEvent.runCommand("/imagepreviewer preview " + entry.message()));
     }
-
 }

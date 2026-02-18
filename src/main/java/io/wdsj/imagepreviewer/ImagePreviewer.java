@@ -134,6 +134,7 @@ public class ImagePreviewer extends JavaPlugin {
     public void reloadConfiguration() {
         try {
             Config.isReloading = true;
+            ConstructTabCompleter.rebuildLocalFilesCache();
             createDirectory(dataFolder);
             config = new Config(this, dataFolder);
             config.saveConfig();
