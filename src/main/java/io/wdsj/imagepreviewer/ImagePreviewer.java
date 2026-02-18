@@ -83,11 +83,12 @@ public class ImagePreviewer extends JavaPlugin {
         if (config().check_for_update) {
             getScheduler().runTaskAsynchronously(() -> {
                 LOGGER.info("Checking for updates...");
-                if (Updater.isUpdateAvailable()) {
-                    LOGGER.warning("There is a new version available: " + Updater.getLatestVersion() +
-                            ", you're on: " + Updater.getCurrentVersion());
+                Updater.UpdateResult result = Updater.checkNow();
+                if (result.isUpdateAvailable()) {
+                    LOGGER.warning("There is a new version available: " + result.getLatestVersion() +
+                            ", you're on: " + PLUGIN_VERSION);
                 } else {
-                    if (!Updater.isErred()) {
+                    if (!result.isError()) {
                         LOGGER.info("You are running the latest version.");
                     } else {
                         LOGGER.info("Unable to fetch version info.");
