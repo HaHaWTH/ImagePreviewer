@@ -146,8 +146,8 @@ public class ConstructCommandExecutor implements CommandExecutor {
                 ImagePreviewer.getInstance().getMapManager().queuedPlayers.add(player.getUniqueId());
 
                 ImageLoader.imageAsData(input)
+                        .whenComplete((unused, unused2) -> ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId()))
                         .thenAcceptOnMain(imageData -> {
-                            ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
                             if (args.length > 2) {
                                 if (!CachingPermTool.hasPermission(PermissionsEnum.PREVIEW_TIME, player)) {
                                     MessageUtil.sendMessage(sender, ImagePreviewer.config().message_no_permission);
@@ -170,7 +170,6 @@ public class ConstructCommandExecutor implements CommandExecutor {
                         .exceptionally(ex -> {
                             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                             MessageUtil.sendMessage(sender, ImagePreviewer.config().message_failed_to_load.replace("%reason%", cause.getMessage()));
-                            ImagePreviewer.getInstance().getMapManager().queuedPlayers.remove(player.getUniqueId());
                             return null;
                         });
                 return true;

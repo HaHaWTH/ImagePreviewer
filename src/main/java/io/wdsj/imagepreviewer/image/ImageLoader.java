@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -270,6 +271,11 @@ public class ImageLoader {
 
         public ImageFetchTask exceptionally(Function<Throwable, ImageData> function) {
             future.exceptionally(function);
+            return this;
+        }
+
+        public ImageFetchTask whenComplete(BiConsumer<ImageData, Throwable> consumer) {
+            future.whenComplete(consumer);
             return this;
         }
     }
