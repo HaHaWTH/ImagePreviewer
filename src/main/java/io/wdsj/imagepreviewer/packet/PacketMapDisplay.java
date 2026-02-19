@@ -87,7 +87,6 @@ public class PacketMapDisplay {
         if (isSpawned) {
             return false;
         }
-        plugin.getMapManager().queuedPlayers.remove(owner.getUniqueId());
         PlayerInventory inventory = owner.getInventory();
         boolean useOffhand = ImagePreviewer.config().use_offhand;
         if (!ImagePreviewer.config().allow_nonempty_hand) {

@@ -76,6 +76,7 @@ public class PreviewHistoryForm extends AbstractForm {
             plugin.getMapManager().queuedPlayers.add(uuid);
             MessageUtil.sendMessage(javaPlayer, config.message_preview_loading);
             ImageLoader.imageAsData(entry.message())
+                    .whenComplete((unused, unused2) -> plugin.getMapManager().queuedPlayers.remove(uuid))
                     .thenAcceptOnMain(imageData -> {
                         if (!new PacketMapDisplay(plugin, javaPlayer, imageData).spawn()) {
                             MessageUtil.sendMessage(javaPlayer, config.message_not_empty_hand);
@@ -83,7 +84,6 @@ public class PreviewHistoryForm extends AbstractForm {
                     })
                     .exceptionally(ex -> {
                         MessageUtil.sendMessage(javaPlayer, config.message_failed_to_load.replace("%reason%", ex.getMessage()));
-                        plugin.getMapManager().queuedPlayers.remove(uuid);
                         return null;
                     });
         });
